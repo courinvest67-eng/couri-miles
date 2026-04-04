@@ -646,7 +646,10 @@ function getProgAcquisition(progId) {
   // Current investment = current balance × avg cost per mile
   const currentBalance = state.balances[progId]||0;
   const totalSpent = Math.max(0, parseFloat((avgCostPerMile * currentBalance).toFixed(2)));
-  return { totalSpent, totalMiles: totalMilesAcquired, avgCostPerMile, avgCostPerK, currentBalance };
+  // If balance is zero, show zero cost (no investment remaining)
+  const effectiveCPM = currentBalance > 0 ? avgCostPerMile : 0;
+  const effectiveCPK = currentBalance > 0 ? avgCostPerK : 0;
+  return { totalSpent, totalMiles: totalMilesAcquired, avgCostPerMile: effectiveCPM, avgCostPerK: effectiveCPK, currentBalance, historicCPK: avgCostPerK };
 }
 
 function getMetrics() {
