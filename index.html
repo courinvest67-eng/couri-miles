@@ -582,6 +582,14 @@ function loadState() {
     const parsed = JSON.parse(s);
     if(!parsed.marketValues) parsed.marketValues = JSON.parse(JSON.stringify(DEFAULT_MARKET_VALUES));
     if(!parsed.recurring) parsed.recurring = [];
+    if(!parsed.balances) parsed.balances = {};
+    // Ensure all programs exist in balances and marketValues
+    PROGRAMS.forEach(p => {
+      if(parsed.balances[p.id] === undefined) parsed.balances[p.id] = 0;
+      if(!parsed.marketValues[p.id] && DEFAULT_MARKET_VALUES[p.id]) {
+        parsed.marketValues[p.id] = JSON.parse(JSON.stringify(DEFAULT_MARKET_VALUES[p.id]));
+      }
+    });
     return parsed;
   } catch(e) { return defaultState(); }
 }
@@ -595,8 +603,8 @@ function saveState() {
 }
 
 // ===== HELPERS =====
-const fCur = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
-const fMiles = v => v.toLocaleString('pt-BR');
+const fCur = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const fMiles = v => (v||0).toLocaleString('pt-BR');
 const fDate = d => new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
 
 function getMarketVal(progId) {
