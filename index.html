@@ -403,14 +403,14 @@
 
 <script>
 // ===== FIREBASE CONFIG =====
-// ⚠️ COLE AQUI o firebaseConfig do seu projeto Firebase:
+// ⚠️ Firebase Configuration - Couri Miles
 const firebaseConfig = {
-  apiKey: "COLE-SUA-API-KEY-AQUI",
-  authDomain: "SEU-PROJETO.firebaseapp.com",
-  projectId: "SEU-PROJETO",
-  storageBucket: "SEU-PROJETO.appspot.com",
-  messagingSenderId: "000000000",
-  appId: "1:000000000:web:abc123"
+  apiKey: "AIzaSyBLac1bHB0ndLyi0RasGCKqlUoBppA-Y3I",
+  authDomain: "couri-miles-dce1b.firebaseapp.com",
+  projectId: "couri-miles-dce1b",
+  storageBucket: "couri-miles-dce1b.firebasestorage.app",
+  messagingSenderId: "220267110540",
+  appId: "1:220267110540:web:5218a2ee6a74cb5be3dba9"
 };
 
 let useFirebase = false;
@@ -767,7 +767,7 @@ function render() {
   else if(activeTab==='promos') content.innerHTML = renderPromos();
   else if(activeTab==='reports') content.innerHTML = renderReports(m);
   else if(activeTab==='sync') { try { content.innerHTML = renderSync(m); } catch(e) { content.innerHTML = '<div class="card">Erro ao renderizar Contas: '+e.message+'</div>'; console.error('renderSync error:',e); } }
-  else if(activeTab==='admin' && isAdmin()) content.innerHTML = renderAdmin();
+  else if(activeTab==='admin' && isAdmin()) { content.innerHTML = renderAdmin(); if(adminUsers.length===0 && !adminLoading) setTimeout(loadAdminUsers, 100); }
 
   content.classList.remove('fade-in');
   void content.offsetWidth;
@@ -1099,6 +1099,35 @@ function renderSimulator() {
           ${milesRowsHTML}
           <button onclick="simAddRow()" style="width:100%;padding:8px;border-radius:10px;border:1px dashed var(--border);background:transparent;color:var(--text-muted);font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:4px">+ Adicionar programa para comparar</button>
         </div>
+
+        <!-- MILHAS + DINHEIRO -->
+        <div style="background:rgba(6,9,26,0.6);border:1px solid var(--border);border-radius:14px;padding:14px">
+          <div style="font-size:12px;font-weight:700;color:#22c997;margin-bottom:4px">🔀 Milhas + Dinheiro</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:12px">Combine milhas e dinheiro para emitir pagando menos</div>
+          <div class="form-grid" style="margin-bottom:10px">
+            <div>
+              <label class="form-label">Programa</label>
+              <select class="form-input" id="sim-hybrid-prog" style="padding:8px;font-size:12px" onchange="simCalcHybrid()">
+                ${PROGRAMS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Milhas total (100%)</label>
+              <input type="number" class="form-input" id="sim-hybrid-miles" placeholder="30000" style="padding:8px;font-size:13px;font-weight:600" oninput="simCalcHybrid()">
+            </div>
+          </div>
+          <div class="form-grid" style="margin-bottom:10px">
+            <div>
+              <label class="form-label">Preço total dinheiro (R$)</label>
+              <input type="number" class="form-input" id="sim-hybrid-cash" placeholder="850" style="padding:8px;font-size:12px" oninput="simCalcHybrid()">
+            </div>
+            <div>
+              <label class="form-label">Taxa embarque (R$)</label>
+              <input type="number" class="form-input" id="sim-hybrid-tax" placeholder="45" style="padding:8px;font-size:12px" oninput="simCalcHybrid()">
+            </div>
+          </div>
+          <div id="sim-hybrid-results"></div>
+        </div>
       </div>
     </div>
 
@@ -1262,6 +1291,90 @@ function simCalc() {
   }
 
   resultsEl.innerHTML = html;
+}
+
+function simCalcHybrid() {
+  const el = document.getElementById('sim-hybrid-results');
+  if(!el) return;
+
+  const progId = document.getElementById('sim-hybrid-prog')?.value || 'livelo';
+  const totalMiles = parseInt(document.getElementById('sim-hybrid-miles')?.value)||0;
+  const cashPrice = parseFloat(document.getElementById('sim-hybrid-cash')?.value)||0;
+  const tax = parseFloat(document.getElementById('sim-hybrid-tax')?.value)||0;
+
+  if(totalMiles<=0 || cashPrice<=0) { el.innerHTML=''; return; }
+
+  const prog = PROGRAMS.find(p=>p.id===progId);
+  const acq = getProgAcquisition(progId);
+  const avgCpk = acq.avgCostPerK;
+  const bal = state.balances[progId]||0;
+
+  // 4 options: 30%, 50%, 70%, 90% miles
+  const percentages = [30, 50, 70, 90];
+
+  const rows = percentages.map(pct => {
+    const miles = Math.round(totalMiles * pct / 100);
+    const cashPart = Math.round(cashPrice * (100 - pct) / 100 * 100) / 100;
+    const totalCash = cashPart + tax;
+    const milesCost = avgCpk > 0 ? (miles / 1000) * avgCpk : 0;
+    const totalReal = totalCash + milesCost;
+    const savingsVsCash = (cashPrice + tax) - totalReal;
+    const savingsPct = (cashPrice + tax) > 0 ? (savingsVsCash / (cashPrice + tax)) * 100 : 0;
+    const hasEnough = miles <= bal;
+
+    return { pct, miles, cashPart, tax, totalCash, milesCost, totalReal, savingsVsCash, savingsPct, hasEnough };
+  });
+
+  const bestIdx = rows.reduce((best, r, i) => r.totalReal < rows[best].totalReal ? i : best, 0);
+
+  let html = `<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">`;
+
+  rows.forEach((r, i) => {
+    const isBest = i === bestIdx;
+    const borderColor = isBest ? '#22c997' : 'var(--border)';
+    const bgColor = isBest ? 'rgba(34,201,151,0.08)' : 'rgba(0,0,0,0.2)';
+
+    html += `<div style="background:${bgColor};border:1px solid ${borderColor};border-radius:10px;padding:10px;${isBest?'box-shadow:0 0 12px rgba(34,201,151,0.15)':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:6px">
+          ${isBest?'<span style="background:#22c997;color:#0a3558;padding:1px 6px;border-radius:4px;font-size:8px;font-weight:800">MELHOR</span>':''}
+          <span style="font-size:11px;font-weight:700;color:${isBest?'#22c997':'var(--text-secondary)'}">${r.pct}% milhas + ${100-r.pct}% dinheiro</span>
+        </div>
+        <span style="font-size:9px;color:${r.hasEnough?'#22c997':'#f0465a'}">${r.hasEnough?'✓ Saldo OK':'⚠ Saldo insuf.'}</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="flex:1;min-width:70px">
+          <div style="font-size:8px;color:var(--text-dim);text-transform:uppercase">Milhas</div>
+          <div class="mono" style="font-size:12px;font-weight:700;color:#1a6fb5">${fMiles(r.miles)}</div>
+        </div>
+        <div style="flex:1;min-width:70px">
+          <div style="font-size:8px;color:var(--text-dim);text-transform:uppercase">Dinheiro</div>
+          <div class="mono" style="font-size:12px;font-weight:700;color:#f5c518">${fCur(r.totalCash)}</div>
+        </div>
+        <div style="flex:1;min-width:70px">
+          <div style="font-size:8px;color:var(--text-dim);text-transform:uppercase">Custo real</div>
+          <div class="mono" style="font-size:12px;font-weight:700;color:var(--text-primary)">${fCur(r.totalReal)}</div>
+        </div>
+        <div style="flex:1;min-width:70px">
+          <div style="font-size:8px;color:var(--text-dim);text-transform:uppercase">Economia</div>
+          <div class="mono" style="font-size:12px;font-weight:700;color:${r.savingsVsCash>=0?'#22c997':'#f0465a'}">${r.savingsVsCash>=0?'-':'+'} ${fCur(Math.abs(r.savingsVsCash))}</div>
+        </div>
+      </div>
+      <div style="font-size:9px;color:var(--text-dim);margin-top:4px">
+        ${fMiles(r.miles)} milhas (custo ${fCur(r.milesCost)}) + ${fCur(r.cashPart)} passagem + ${fCur(r.tax)} taxa${r.savingsPct>0?' · <span style="color:#22c997">'+r.savingsPct.toFixed(0)+'% mais barato</span>':''}
+      </div>
+    </div>`;
+  });
+
+  html += `</div>`;
+
+  if(avgCpk > 0) {
+    html += `<div style="font-size:9px;color:var(--text-dim);margin-top:8px;text-align:center">Custo base: ${prog?prog.name:''} a ${fCur(avgCpk)}/K · Saldo: ${fMiles(bal)} milhas</div>`;
+  } else {
+    html += `<div style="font-size:9px;color:#f59e0b;margin-top:8px;text-align:center">⚠ Sem custo de acúmulo registrado para ${prog?prog.name:''}. Registre compras para ver o custo real.</div>`;
+  }
+
+  el.innerHTML = html;
 }
 
 // ----- PROMOS -----
@@ -2091,7 +2204,7 @@ function renderModal() {
   ` : `
     <div class="form-group">
       <label class="form-label">Programa</label>
-      <select class="form-input" id="f-program" onchange="onFormProgramChange()">${PROGRAMS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select>
+      <select class="form-input" id="f-program" onchange="onFormProgramChange()">${PROGRAMS.map(p=>`<option value="${p.id}">${p.name}${formType==='venda'||formType==='uso'?' ('+fMiles(state.balances[p.id]||0)+' milhas)':''}</option>`).join('')}</select>
     </div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="f-date" value="${today}" onchange="onFormDateChange()"></div>
@@ -2149,7 +2262,7 @@ function renderModal() {
       <div id="venda-detail" style="font-size:10px;color:var(--text-dim);margin-top:8px;text-align:center"></div>
     </div>
 
-    <div id="cpf-limits-section" style="display:${formType==='venda'||formType==='uso'?'block':'none'};background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:14px;margin-bottom:14px">
+    <div id="cpf-limits-section" style="display:${formType==='venda'?'block':'none'};background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:14px;margin-bottom:14px">
       <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">👥 Limite de CPFs para Emissão a Terceiros</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:#0a0e1a;border-radius:8px">
@@ -2401,6 +2514,12 @@ function onUsoTypeChange() {
   const sel = document.getElementById('f-uso-type');
   const descEl = document.getElementById('f-desc');
   if(!sel||!descEl||!sel.value) return;
+
+  // Show CPF limits only for passagem aérea
+  const cpfSection = document.getElementById('cpf-limits-section');
+  if(cpfSection && formType==='uso') {
+    cpfSection.style.display = sel.value==='passagem' ? 'block' : 'none';
+  }
 
   // Auto-fill description based on selected uso type
   if(!descEl.value || descEl.value === descEl.getAttribute('data-auto')) {
