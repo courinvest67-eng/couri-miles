@@ -4164,7 +4164,7 @@ function initApp() {
 if(useFirebase) {
   // Hide app until auth
   document.querySelector('.header').style.display='none';
-  document.getElementById('main-content').style.display='none';
+ document.getElementById('main-content').parentElement.style.display='none';
 
   firebase.auth().onAuthStateChanged(async(user)=>{
     currentUser=user;
@@ -4176,7 +4176,7 @@ if(useFirebase) {
       if(!loaded) state=defaultState();
       authScreen.style.display='none';
       document.querySelector('.header').style.display='';
-      document.getElementById('main-content').parentElement.style.display='';
+     document.getElementById('main-content').style.display='';
       applyUserTheme(user);
       initApp();
     } else {
