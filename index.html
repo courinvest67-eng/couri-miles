@@ -3276,143 +3276,240 @@ async function handleImportFile(event) {
   showImportPreview(file.name);
 }
 
+// =============================================================
+// BLOCO 1: NOVAS FUNÇÕES (adicionar ANTES da função parseCSVText)
+// No GitHub, vá até a linha onde está "function parseCSVText"
+// e ANTES dela, cole tudo deste BLOCO 1
+// =============================================================
+
+function detectColumns(headers) {
+  const h = headers.map(c => String(c||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim());
+  const map = { date:-1, miles:-1, cost:-1, type:-1, origin:-1, dest:-1, bonus:-1 };
+  h.forEach((col, i) => {
+    if(col.includes('data') || col.includes('date')) map.date = i;
+    else if(col.includes('milha') || col.includes('miles') || col.includes('ponto') || col.includes('pts') || col.includes('quantidade')) map.miles = i;
+    else if(col.includes('custo') || col.includes('cost') || col.includes('valor') || col.includes('preco') || col.includes('price') || col.includes('investido')) map.cost = i;
+    else if(col.includes('movimenta') || col.includes('tipo') || col.includes('type') || col.includes('operacao')) map.type = i;
+    else if(col.includes('origem') || col.includes('origin') || col.includes('fonte') || col.includes('source')) map.origin = i;
+    else if(col.includes('destino') || col.includes('dest') || col.includes('target') || col.includes('programa destino')) map.dest = i;
+    else if(col.includes('bonus') || col.includes('bonifica') || col.includes('multiplic')) map.bonus = i;
+  });
+  return map;
+}
+
+function mapDestToProgId(dest) {
+  if(!dest) return null;
+  const d = String(dest).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(d.includes('smiles')) return 'smiles';
+  if(d.includes('azul') || d.includes('tudoazul') || d.includes('tudo azul')) return 'tudoazul';
+  if(d.includes('latam')) return 'latampass';
+  if(d.includes('accor') || d.includes('all')) return 'allaccor';
+  if(d.includes('livelo')) return 'livelo';
+  if(d.includes('esfera')) return 'esfera';
+  if(d.includes('c6') || d.includes('atomos')) return 'c6atomos';
+  if(d.includes('inter') || d.includes('loop')) return 'interloop';
+  return null;
+}
+
+function mapMovType(mov) {
+  if(!mov) return 'compra';
+  const m = String(mov).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(m.includes('acumulo') || m.includes('compra') || m.includes('credito') || m.includes('bonus') || m.includes('clube')) return 'compra';
+  if(m.includes('transf') || m.includes('tranf')) return 'transferencia';
+  if(m.includes('venda') || m.includes('resgate dinheiro') || m.includes('cashback')) return 'venda';
+  if(m.includes('uso') || m.includes('emiss') || m.includes('passag') || m.includes('hospedagem') || m.includes('utilizacao')) return 'uso';
+  return 'compra';
+}
+
+function impTypeChanged(idx) {
+  const typeEl = document.getElementById('imp-type-'+idx);
+  const destCell = document.getElementById('imp-dest-cell-'+idx);
+  const bonusCell = document.getElementById('imp-bonus-cell-'+idx);
+  if(!typeEl) return;
+  const isTransfer = typeEl.value === 'transferencia';
+  if(destCell) destCell.style.display = isTransfer ? '' : 'none';
+  if(bonusCell) bonusCell.style.display = isTransfer ? '' : 'none';
+}
+
+function addImportedTxSmart(row, originProgId, type, destProgId, bonusPct) {
+  const baseId = Date.now() + Math.round(Math.random() * 10000000);
+  if(type === 'transferencia' && destProgId) {
+    const milesOut = row.miles;
+    const milesIn = bonusPct !== 0 ? Math.round(milesOut * (1 + bonusPct/100)) : milesOut;
+    let convInfo = '';
+    if(bonusPct > 0) convInfo = ` (bônus ${bonusPct}%)`;
+    else if(bonusPct < 0) convInfo = ` (${bonusPct}%)`;
+    const destProg = PROGRAMS.find(p => p.id === destProgId);
+    const originProg = PROGRAMS.find(p => p.id === originProgId);
+    const desc = row.desc || `${originProg?originProg.name:originProgId} → ${destProg?destProg.name:destProgId}${convInfo}`;
+    const acq = getProgAcquisition(originProgId);
+    const transferredCost = parseFloat((acq.avgCostPerMile * milesOut).toFixed(2));
+    const destCostPerK = milesIn > 0 ? (transferredCost / milesIn) * 1000 : 0;
+    state.transactions.push({
+      id: baseId, date: row.date, program: originProgId, type: 'transferencia',
+      miles: milesOut, cost: 0, savedValue: 0,
+      description: `↗ Saída: ${desc}`, costPerK: 0,
+      transferTo: destProgId, transferLinkedMiles: milesIn, transferredCost, imported: true,
+    });
+    state.transactions.push({
+      id: baseId + 1, date: row.date, program: destProgId, type: 'transferencia',
+      miles: milesIn, cost: transferredCost, savedValue: 0,
+      description: `↙ Entrada: ${desc}`, costPerK: destCostPerK,
+      transferFrom: originProgId, transferLinkedMiles: milesOut, transferredCost, imported: true,
+    });
+  } else {
+    state.transactions.push({
+      id: baseId, date: row.date || new Date().toISOString().split('T')[0],
+      program: originProgId, type: type,
+      miles: row.miles || 0,
+      cost: type === 'uso' ? 0 : (row.value || 0),
+      savedValue: type === 'uso' ? (row.value || 0) : 0,
+      description: row.desc || 'Importado',
+      costPerK: row.miles > 0 && row.value > 0 ? (row.value / row.miles) * 1000 : 0,
+      imported: true,
+    });
+  }
+}
+
+
+// =============================================================
+// BLOCO 2: SUBSTITUIR a função parseCSVText INTEIRA
+// No GitHub, APAGUE desde "function parseCSVText" até o "}" final
+// e cole esta versão no lugar
+// =============================================================
+
 function parseCSVText(text) {
-  const lines = text.split(/\r?\n/).filter(l=>l.trim());
-  if(lines.length<2) return [];
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if(lines.length < 2) return [];
+  const firstLine = lines[0];
+  const sep = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ',';
+  const headers = firstLine.split(sep).map(c => c.trim().replace(/^"|"$/g,''));
+  const colMap = detectColumns(headers);
   const rows = [];
-  for(let i=1;i<lines.length;i++) {
-    const cols = lines[i].split(/[;,\t]/).map(c=>c.trim().replace(/^"|"$/g,''));
-    if(cols.length>=2) {
-      rows.push({ raw: cols, date: extractDate(cols), miles: extractNumber(cols), value: extractValue(cols), desc: extractDesc(cols), type: guessType(cols) });
+  for(let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(sep).map(c => c.trim().replace(/^"|"$/g,''));
+    if(cols.length < 2) continue;
+    const rawDate = colMap.date >= 0 ? cols[colMap.date] : null;
+    const rawMiles = colMap.miles >= 0 ? cols[colMap.miles] : 0;
+    const rawCost = colMap.cost >= 0 ? cols[colMap.cost] : 0;
+    const rawType = colMap.type >= 0 ? cols[colMap.type] : '';
+    const rawOrigin = colMap.origin >= 0 ? cols[colMap.origin] : '';
+    const rawDest = colMap.dest >= 0 ? cols[colMap.dest] : '';
+    const rawBonus = colMap.bonus >= 0 ? cols[colMap.bonus] : '';
+    const date = parseFlexDate(rawDate) || new Date().toISOString().split('T')[0];
+    let miles = Math.round(Math.abs(parseFloat(String(rawMiles).replace(/\./g,'').replace(',','.')) || 0));
+    let cost = Math.abs(parseFloat(String(rawCost).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.')) || 0);
+    cost = Math.round(cost * 100) / 100;
+    const type = mapMovType(rawType);
+    const destProgId = mapDestToProgId(rawDest);
+    let bonusPct = 0;
+    if(rawBonus) {
+      const bv = parseFloat(String(rawBonus).replace(',','.'));
+      if(!isNaN(bv) && bv > 0) { bonusPct = bv > 0 && bv < 10 ? Math.round((bv - 1) * 100) : Math.round(bv); }
     }
+    let desc = String(rawOrigin || '').trim();
+    if(type === 'transferencia' && rawDest) {
+      desc = `${importProgram==='livelo'?'Livelo':importProgram} → ${String(rawDest).trim()}`;
+      if(bonusPct !== 0) desc += bonusPct > 0 ? ` (bônus ${bonusPct}%)` : ` (${bonusPct}%)`;
+    }
+    if(!desc) desc = 'Importado';
+    if(miles === 0 && cost === 0) continue;
+    rows.push({ raw: cols, date, miles, value: cost, desc, type, destProgId, bonusPct, origin: String(rawOrigin||'').trim() });
   }
   return rows;
 }
+
+
+// =============================================================
+// BLOCO 3: SUBSTITUIR a função parseExcelData INTEIRA
+// No GitHub, APAGUE desde "function parseExcelData" até o "}" final
+// e cole esta versão no lugar
+// =============================================================
 
 function parseExcelData(data) {
   const wb = XLSX.read(data, {type:'array', cellDates:true});
   const sheet = wb.Sheets[wb.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
-  if(json.length<2) return [];
+  const json = XLSX.utils.sheet_to_json(sheet, {header:1, defval:'', raw:true});
+  if(json.length < 2) return [];
+  const headers = json[0];
+  const colMap = detectColumns(headers);
+  console.log('Import: detected columns:', colMap, 'from headers:', headers);
   const rows = [];
-  for(let i=1;i<json.length;i++) {
-    const cols = json[i].map(c=>String(c).trim());
-    if(cols.some(c=>c)) {
-      rows.push({ raw: cols, date: extractDate(cols), miles: extractNumber(cols), value: extractValue(cols), desc: extractDesc(cols), type: guessType(cols) });
+  for(let i = 1; i < json.length; i++) {
+    const cols = json[i];
+    if(!cols || cols.every(c => c === '' || c === null || c === undefined)) continue;
+    const rawDate = colMap.date >= 0 ? cols[colMap.date] : null;
+    const rawMiles = colMap.miles >= 0 ? cols[colMap.miles] : 0;
+    const rawCost = colMap.cost >= 0 ? cols[colMap.cost] : 0;
+    const rawType = colMap.type >= 0 ? cols[colMap.type] : '';
+    const rawOrigin = colMap.origin >= 0 ? cols[colMap.origin] : '';
+    const rawDest = colMap.dest >= 0 ? cols[colMap.dest] : '';
+    const rawBonus = colMap.bonus >= 0 ? cols[colMap.bonus] : '';
+    const date = parseFlexDate(rawDate) || new Date().toISOString().split('T')[0];
+    let miles = 0;
+    if(rawMiles !== '' && rawMiles !== null && rawMiles !== undefined) {
+      miles = Math.round(Math.abs(parseFloat(String(rawMiles).replace(/\./g,'').replace(',','.')) || 0));
     }
-  }
-  return rows;
-}
-
-async function parsePDFFile(file) {
-  if(!window.pdfjsLib) { alert('Biblioteca PDF não carregou. Tente recarregar a página.'); return []; }
-  const data = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({data}).promise;
-  let allText = '';
-  for(let i=1;i<=pdf.numPages;i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const lines = [];
-    let lastY = null;
-    content.items.forEach(item => {
-      if(lastY!==null && Math.abs(item.transform[5]-lastY)>5) lines.push('\n');
-      lines.push(item.str);
-      lastY = item.transform[5];
-    });
-    allText += lines.join(' ')+'\n';
-  }
-  // Parse lines looking for patterns
-  const textLines = allText.split('\n').filter(l=>l.trim());
-  const rows = [];
-  for(const line of textLines) {
-    const dateMatch = line.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/);
-    const numMatch = line.match(/(\d[\d\.]*\d)/g);
-    if(dateMatch && numMatch) {
-      const numbers = numMatch.map(n=>parseFloat(n.replace(/\./g,'').replace(',','.'))).filter(n=>n>0);
-      const miles = numbers.find(n=>n>=100)||0;
-      const value = numbers.find(n=>n>0&&n!==miles&&n<miles)||0;
-      if(miles>0) {
-        rows.push({ raw:[line], date:parseFlexDate(dateMatch[1]), miles:Math.round(miles), value, desc:line.substring(0,80).trim(), type:guessTypeFromText(line) });
+    let cost = 0;
+    if(rawCost !== '' && rawCost !== null && rawCost !== undefined) {
+      cost = Math.abs(parseFloat(String(rawCost).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.')) || 0);
+      cost = Math.round(cost * 100) / 100;
+    }
+    const type = mapMovType(rawType);
+    const destProgId = mapDestToProgId(rawDest);
+    let bonusPct = 0;
+    if(rawBonus !== '' && rawBonus !== null && rawBonus !== undefined && String(rawBonus) !== 'None') {
+      const bonusVal = parseFloat(String(rawBonus).replace(',','.'));
+      if(!isNaN(bonusVal) && bonusVal > 0) {
+        if(bonusVal > 0 && bonusVal < 10) { bonusPct = Math.round((bonusVal - 1) * 100); }
+        else { bonusPct = Math.round(bonusVal); }
       }
     }
+    let desc = String(rawOrigin || '').trim();
+    if(type === 'transferencia' && rawDest && String(rawDest) !== 'None') {
+      const destName = String(rawDest).trim();
+      desc = `Livelo → ${destName}`;
+      if(bonusPct !== 0) { desc += bonusPct > 0 ? ` (bônus ${bonusPct}%)` : ` (${bonusPct}%)`; }
+    }
+    if(!desc) desc = type === 'compra' ? 'Acúmulo' : type === 'transferencia' ? 'Transferência' : type === 'venda' ? 'Venda' : 'Utilização';
+    if(miles === 0 && cost === 0) continue;
+    rows.push({ raw: cols, date, miles, value: cost, desc, type, destProgId, bonusPct, origin: String(rawOrigin||'').trim() });
   }
   return rows;
 }
 
-function extractDate(cols) {
-  for(const c of cols) {
-    const d = parseFlexDate(c);
-    if(d) return d;
-  }
-  return new Date().toISOString().split('T')[0];
-}
 
-function parseFlexDate(str) {
-  if(!str) return null;
-  let m = String(str).match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-  if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
-  m = String(str).match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
-  if(m) {
-    const y = m[3].length===2?'20'+m[3]:m[3];
-    return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
-  }
-  if(str instanceof Date) return str.toISOString().split('T')[0];
-  return null;
-}
-
-function extractNumber(cols) {
-  const nums = cols.map(c=>parseFloat(String(c).replace(/\./g,'').replace(',','.'))).filter(n=>!isNaN(n)&&n>=100);
-  return nums.length>0 ? Math.round(Math.max(...nums)) : 0;
-}
-
-function extractValue(cols) {
-  const nums = cols.map(c=>{
-    const clean = String(c).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.');
-    return parseFloat(clean);
-  }).filter(n=>!isNaN(n)&&n>0&&n<100000);
-  return nums.length>0 ? nums[0] : 0;
-}
-
-function extractDesc(cols) {
-  const text = cols.filter(c=>String(c).length>5&&isNaN(parseFloat(String(c).replace(/[\.\,]/g,'')))).join(' ');
-  return text.substring(0,80)||'Importado';
-}
-
-function guessType(cols) {
-  const text = cols.join(' ').toLowerCase();
-  return guessTypeFromText(text);
-}
-
-function guessTypeFromText(text) {
-  const t = text.toLowerCase();
-  if(t.includes('venda')||t.includes('resgate dinheiro')||t.includes('cashback')) return 'venda';
-  if(t.includes('emiss')||t.includes('passag')||t.includes('bilhete')||t.includes('voucher')||t.includes('hospedagem')) return 'uso';
-  if(t.includes('transfer')||t.includes('conver')) return 'transferencia';
-  if(t.includes('compra')||t.includes('acúmulo')||t.includes('acumulo')||t.includes('crédito')||t.includes('credito')||t.includes('bônus')||t.includes('bonus')||t.includes('clube')) return 'compra';
-  return 'compra';
-}
+// =============================================================
+// BLOCO 4: SUBSTITUIR a função showImportPreview INTEIRA
+// =============================================================
 
 function showImportPreview(filename) {
   const area = document.getElementById('import-preview-area');
   if(!area) return;
-
-  const progOptions = PROGRAMS.map(p=>`<option value="${p.id}" ${p.id===importProgram?'selected':''}>${p.name}</option>`).join('');
-
-  const rowsHTML = importedRows.slice(0,20).map((r,i)=>`
-    <tr>
+  const progOptions = PROGRAMS.map(p => `<option value="${p.id}" ${p.id===importProgram?'selected':''}>${p.name}</option>`).join('');
+  const rowsHTML = importedRows.slice(0, 20).map((r, i) => {
+    const isTransfer = r.type === 'transferencia';
+    return `<tr>
       <td><input type="checkbox" checked id="imp-chk-${i}" style="accent-color:#3b82f6"></td>
-      <td class="mono" style="font-size:10px;color:var(--text-secondary)">${r.date||'—'}</td>
+      <td><input type="date" class="form-input" id="imp-date-${i}" value="${r.date}" style="padding:4px 6px;font-size:10px;width:120px"></td>
       <td>
-        <select style="background:#0a0e1a;border:1px solid #1e293b;border-radius:4px;color:#e2e8f0;font-size:10px;padding:2px" id="imp-type-${i}">
-          ${Object.entries(TYPE_LABELS).map(([k,v])=>`<option value="${k}" ${r.type===k?'selected':''}>${v}</option>`).join('')}
+        <select style="background:#0a0e1a;border:1px solid #1e293b;border-radius:4px;color:#e2e8f0;font-size:10px;padding:2px" id="imp-type-${i}" onchange="impTypeChanged(${i})">
+          ${Object.entries(TYPE_LABELS).map(([k,v]) => `<option value="${k}" ${r.type===k?'selected':''}>${v}</option>`).join('')}
         </select>
       </td>
       <td class="mono" style="font-weight:700;font-size:11px">${fMiles(r.miles)}</td>
-      <td class="mono" style="font-size:11px">${r.value>0?fCur(r.value):'—'}</td>
-      <td style="font-size:10px;color:var(--text-dim);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.desc}</td>
-    </tr>
-  `).join('');
-
+      <td class="mono" style="font-size:11px">${r.value > 0 ? fCur(r.value) : '—'}</td>
+      <td id="imp-dest-cell-${i}" style="${isTransfer?'':'display:none'}">
+        <select style="background:#0a0e1a;border:1px solid #1e293b;border-radius:4px;color:#9C27B0;font-size:10px;padding:2px;font-weight:600" id="imp-dest-${i}">
+          ${PROGRAMS.map(p => `<option value="${p.id}" ${r.destProgId===p.id?'selected':''}>${p.name}</option>`).join('')}
+        </select>
+      </td>
+      <td id="imp-bonus-cell-${i}" style="${isTransfer?'':'display:none'}">
+        <span class="mono" style="font-size:10px;color:${r.bonusPct>0?'#22c997':r.bonusPct<0?'#f0465a':'var(--text-dim)'};font-weight:600">${r.bonusPct!==0?(r.bonusPct>0?'+':'')+r.bonusPct+'%':'—'}</span>
+      </td>
+      <td style="font-size:10px;color:var(--text-dim);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.desc}</td>
+    </tr>`;
+  }).join('');
   area.innerHTML = `
     <div class="card" style="border-top:3px solid #3b82f6">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -3422,87 +3519,77 @@ function showImportPreview(filename) {
         </div>
         <button onclick="cancelImport()" style="background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer">✕</button>
       </div>
-
       <div class="form-group" style="margin-bottom:12px">
-        <label class="form-label">Programa de Fidelidade</label>
+        <label class="form-label">Programa de Fidelidade (origem)</label>
         <select class="form-input" id="import-program" onchange="importProgram=this.value" style="max-width:200px">${progOptions}</select>
       </div>
-
       <div style="overflow-x:auto;margin-bottom:12px">
         <table style="font-size:11px">
           <thead><tr>
             <th style="width:30px"><input type="checkbox" checked onchange="toggleAllImport(this.checked)" style="accent-color:#3b82f6"></th>
-            ${['Data','Tipo','Milhas','Valor','Descrição'].map(h=>`<th>${h}</th>`).join('')}
+            ${['Data','Tipo','Milhas','Custo','Destino','Bônus','Descrição'].map(h => `<th>${h}</th>`).join('')}
           </tr></thead>
           <tbody>${rowsHTML}</tbody>
         </table>
       </div>
-
+      ${importedRows.filter(r=>r.type==='transferencia').length > 0 ? `
+      <div style="background:rgba(156,39,176,0.08);border:1px solid rgba(156,39,176,0.2);border-radius:10px;padding:10px;margin-bottom:12px;font-size:11px;color:#ce93d8">
+        ↔ <strong>${importedRows.filter(r=>r.type==='transferencia').length} transferência(s)</strong> detectada(s). Milhas serão debitadas da origem e creditadas no destino com bônus aplicado.
+      </div>` : ''}
       <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button onclick="cancelImport()" style="padding:8px 16px;border-radius:10px;border:1px solid #1e293b;background:#06091a;color:var(--text-muted);font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Cancelar</button>
+        <button onclick="cancelImport()" style="padding:8px 16px;border-radius:10px;border:1px solid #1e293b;background:transparent;color:var(--text-muted);font-size:12px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Cancelar</button>
         <button onclick="confirmImport()" style="padding:8px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Importar Selecionados</button>
       </div>
     </div>`;
 }
 
-function toggleAllImport(checked) {
-  importedRows.forEach((_,i)=>{
-    const el=document.getElementById('imp-chk-'+i);
-    if(el) el.checked=checked;
-  });
-}
 
-function cancelImport() {
-  importedRows=[];
-  const area=document.getElementById('import-preview-area');
-  if(area) area.innerHTML='';
-}
+// =============================================================
+// BLOCO 5: SUBSTITUIR a função confirmImport INTEIRA
+// =============================================================
 
 function confirmImport() {
   const prog = document.getElementById('import-program')?.value || importProgram;
-  let count=0;
-
-  importedRows.forEach((r,i)=>{
-    if(i>=20) {
-      // Auto-import rows beyond preview
-      addImportedTx(r, prog, r.type);
+  let count = 0;
+  importedRows.forEach((r, i) => {
+    if(i >= 20) {
+      addImportedTxSmart(r, prog, r.type, r.destProgId, r.bonusPct);
       count++;
       return;
     }
-    const chk=document.getElementById('imp-chk-'+i);
-    const typeEl=document.getElementById('imp-type-'+i);
-    if(chk&&chk.checked) {
-      const type = typeEl?typeEl.value:r.type;
-      addImportedTx(r, prog, type);
+    const chk = document.getElementById('imp-chk-'+i);
+    const typeEl = document.getElementById('imp-type-'+i);
+    const dateEl = document.getElementById('imp-date-'+i);
+    const destEl = document.getElementById('imp-dest-'+i);
+    if(chk && chk.checked) {
+      const type = typeEl ? typeEl.value : r.type;
+      const date = dateEl ? dateEl.value : r.date;
+      const destId = destEl ? destEl.value : r.destProgId;
+      const rowCopy = {...r, date, type};
+      addImportedTxSmart(rowCopy, prog, type, destId, r.bonusPct);
       count++;
     }
   });
-
   recalcBalances();
   saveState();
-  importedRows=[];
-  const area=document.getElementById('import-preview-area');
-  if(area) area.innerHTML=`<div class="card" style="border-left:3px solid #10b981;padding:12px"><span style="color:#10b981;font-weight:600">✓ ${count} movimentações importadas com sucesso!</span></div>`;
-  setTimeout(()=>{ if(area) area.innerHTML=''; render(); }, 2500);
+  importedRows = [];
+  const area = document.getElementById('import-preview-area');
+  if(area) area.innerHTML = `<div class="card" style="border-left:3px solid #10b981;padding:12px"><span style="color:#10b981;font-weight:600">✓ ${count} movimentações importadas com sucesso!</span></div>`;
+  setTimeout(() => { if(area) area.innerHTML = ''; render(); }, 2500);
 }
 
-function addImportedTx(row, progId, type) {
-  const tx = {
-    id: Date.now()+Math.random()*10000,
-    date: row.date||new Date().toISOString().split('T')[0],
-    program: progId,
-    type: type,
-    miles: row.miles||0,
-    cost: type==='uso'?0:(row.value||0),
-    savedValue: type==='uso'?(row.value||0):0,
-    description: row.desc||'Importado',
-    costPerK: row.miles>0&&row.value>0?(row.value/row.miles)*1000:0,
-    imported: true,
-  };
-  state.transactions.push(tx);
-}
 
-// ===== ADMIN PANEL =====
+// =============================================================
+// BLOCO 6: APAGAR estas funções antigas (não são mais necessárias):
+// - extractDate
+// - extractNumber
+// - extractValue
+// - extractDesc
+// - guessType
+// - guessTypeFromText
+// - addImportedTx
+// (Podem ser deixadas sem problema, mas ficam sem uso)
+// =============================================================
 let adminUsers = [];
 let adminLoading = false;
 
