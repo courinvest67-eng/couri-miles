@@ -3412,8 +3412,8 @@ function parseCSVText(text) {
     const rawDest = colMap.dest >= 0 ? cols[colMap.dest] : '';
     const rawBonus = colMap.bonus >= 0 ? cols[colMap.bonus] : '';
     const date = parseFlexDate(rawDate) || new Date().toISOString().split('T')[0];
-    let miles = Math.round(Math.abs(parseFloat(String(rawMiles).replace(/\./g,'').replace(',','.')) || 0));
-    let cost = Math.abs(parseFloat(String(rawCost).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.')) || 0);
+    let miles = Math.round(Math.abs(typeof rawMiles === 'number' ? rawMiles : parseFloat(String(rawMiles).replace(/\./g,'').replace(',','.')) || 0));
+    let cost = Math.abs(typeof rawCost === 'number' ? rawCost : parseFloat(String(rawCost).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.')) || 0);
     cost = Math.round(cost * 100) / 100;
     const type = mapMovType(rawType);
     const destProgId = mapDestToProgId(rawDest);
