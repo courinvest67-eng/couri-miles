@@ -3393,43 +3393,48 @@ function addImportedTxSmart(row, originProgId, type, destProgId, bonusPct) {
 // e cole esta versão no lugar
 // =============================================================
 function parseExcelData(data) {
-  const wb = XLSX.read(data, {type:'array', cellDates:true});
-  const sheet = wb.Sheets[wb.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json(sheet, {header:1, defval:'', raw:true});
+  var wb = XLSX.read(data, {type:'array', cellDates:true});
+  var sheet = wb.Sheets[wb.SheetNames[0]];
+  var json = XLSX.utils.sheet_to_json(sheet, {header:1, defval:'', raw:true});
   if(json.length < 2) return [];
-  const headers = json[0];
-  const colMap = detectColumns(headers);
-  console.log('Import: detected columns:', colMap, 'from headers:', headers);
-  const rows = [];
-  for(let i = 1; i < json.length; i++) {
-    const cols = json[i];
-    if(!cols || cols.every(c => c === '' || c === null || c === undefined)) continue;
-    const rawDate = colMap.date >= 0 ? cols[colMap.date] : null;
-    const rawMiles = colMap.miles >= 0 ? cols[colMap.miles] : 0;
-    const rawCost = colMap.cost >= 0 ? cols[colMap.cost] : 0;
-    const rawType = colMap.type >= 0 ? cols[colMap.type] : '';
-    const rawOrigin = colMap.origin >= 0 ? cols[colMap.origin] : '';
-    const rawDest = colMap.dest >= 0 ? cols[colMap.dest] : '';
-    const rawBonus = colMap.bonus >= 0 ? cols[colMap.bonus] : '';
-    const date = parseFlexDate(rawDate) || new Date().toISOString().split('T')[0];
-    let miles = typeof rawMiles === 'number' ? Math.round(Math.abs(rawMiles)) : Math.round(Math.abs(parseFloat(String(rawMiles).replace(',','.')) || 0));
-    let cost = typeof rawCost === 'number' ? Math.abs(rawCost) : Math.abs(parseFloat(String(rawCost).replace(',','.')) || 0);
+  var headers = json[0];
+  var colMap = detectColumns(headers);
+  var rows = [];
+  for(var i = 1; i < json.length; i++) {
+    var cols = json[i];
+    if(!cols) continue;
+    var empty = true;
+    for(var j=0;j<cols.length;j++){if(cols[j]!==''&&cols[j]!==null&&cols[j]!==undefined){empty=false;break;}}
+    if(empty) continue;
+    var rawDate = colMap.date >= 0 ? cols[colMap.date] : null;
+    var rawMiles = colMap.miles >= 0 ? cols[colMap.miles] : 0;
+    var rawCost = colMap.cost >= 0 ? cols[colMap.cost] : 0;
+    var rawType = colMap.type >= 0 ? cols[colMap.type] : '';
+    var rawOrigin = colMap.origin >= 0 ? cols[colMap.origin] : '';
+    var rawDest = colMap.dest >= 0 ? cols[colMap.dest] : '';
+    var rawBonus = colMap.bonus >= 0 ? cols[colMap.bonus] : '';
+    var date = parseFlexDate(rawDate) || new Date().toISOString().split('T')[0];
+    var miles = typeof rawMiles === 'number' ? Math.round(Math.abs(rawMiles)) : Math.round(Math.abs(parseFloat(String(rawMiles).replace(',','.')) || 0));
+    var cost = typeof rawCost === 'number' ? Math.abs(rawCost) : Math.abs(parseFloat(String(rawCost).replace(',','.')) || 0);
     cost = Math.round(cost * 100) / 100;
-    const type = mapMovType(rawType);
-    const destProgId = mapDestToProgId(rawDest);
-    let bonusPct = 0;
+    var type = mapMovType(rawType);
+    var destProgId = mapDestToProgId(rawDest);
+    var bonusPct = 0;
     if(rawBonus !== '' && rawBonus !== null && rawBonus !== undefined && String(rawBonus) !== 'None') {
-      const bonusVal = parseFloat(String(rawBonus).replace(',','.'));
-      if(!isNaN(bonusVal) && bonusVal > 0) { if(bonusVal >= 10) { bonusPct = Math.round(bonusVal); } else { bonusPct = Math.round((bonusVal - 1) * 100); } }
+      var bonusVal = parseFloat(String(rawBonus).replace(',','.'));
+      if(!isNaN(bonusVal) && bonusVal > 0) {
+        if(bonusVal >= 10) { bonusPct = Math.round(bonusVal); }
+        else { bonusPct = Math.round((bonusVal - 1) * 100); }
+      }
     }
-    let desc = String(rawOrigin || '').trim();
+    var desc = String(rawOrigin || '').trim();
     if(type === 'transferencia' && rawDest && String(rawDest) !== 'None') {
-      desc = 'Livelo → ' + String(rawDest).trim();
-      if(bonusPct !== 0) { desc += bonusPct > 0 ? ' (bônus ' + bonusPct + '%)' : ' (' + bonusPct + '%)'; }
+      desc = 'Livelo > ' + String(rawDest).trim();
+      if(bonusPct !== 0) { desc += bonusPct > 0 ? ' (bonus ' + bonusPct + '%)' : ' (' + bonusPct + '%)'; }
     }
-    if(!desc) desc = type === 'compra' ? 'Acúmulo' : type === 'transferencia' ? 'Transferência' : type === 'venda' ? 'Venda' : 'Utilização';
+    if(!desc) desc = type === 'compra' ? 'Acumulo' : type === 'transferencia' ? 'Transferencia' : type === 'venda' ? 'Venda' : 'Utilizacao';
     if(miles === 0 && cost === 0) continue;
-    rows.push({ raw: cols, date: date, miles: miles, value: cost, desc: desc, type: type, destProgId: destProgId, bonusPct: bonusPct, origin: String(rawOrigin||'').trim() });
+    rows.push({raw:cols, date:date, miles:miles, value:cost, desc:desc, type:type, destProgId:destProgId, bonusPct:bonusPct, origin:String(rawOrigin||'').trim()});
   }
   return rows;
 }
