@@ -490,7 +490,7 @@ function authOffline() {
   currentUser=null;
   document.getElementById('auth-screen').style.display='none';
   document.querySelector('.header').style.display='';
-  document.getElementById('main-content').style.display='';
+  document.getElementById('main-content').parentElement.style.display='';
   applyUserTheme(null);
   initApp();
 }
@@ -4176,7 +4176,7 @@ if(useFirebase) {
       if(!loaded) state=defaultState();
       authScreen.style.display='none';
       document.querySelector('.header').style.display='';
-      document.getElementById('main-content').style.display='';
+      document.getElementById('main-content').parentElement.style.display='';
       applyUserTheme(user);
       initApp();
     } else {
