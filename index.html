@@ -3420,7 +3420,7 @@ function parseCSVText(text) {
     let bonusPct = 0;
     if(rawBonus) {
       const bv = parseFloat(String(rawBonus).replace(',','.'));
-      if(!isNaN(bv) && bv > 0) { bonusPct = bv > 0 && bv < 10 ? Math.round((bv - 1) * 100) : Math.round(bv); }
+      if(!isNaN(bonusVal) && bonusVal > 0) { if(bonusVal >= 10) { bonusPct = Math.round(bonusVal); } else { bonusPct = Math.round((bonusVal - 1) * 100); } }
     }
     let desc = String(rawOrigin || '').trim();
     if(type === 'transferencia' && rawDest) {
