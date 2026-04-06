@@ -3357,8 +3357,7 @@ function addImportedTxSmart(row, originProgId, type, destProgId, bonusPct) {
     const destProg = PROGRAMS.find(p => p.id === destProgId);
     const originProg = PROGRAMS.find(p => p.id === originProgId);
     const desc = row.desc || `${originProg?originProg.name:originProgId} → ${destProg?destProg.name:destProgId}${convInfo}`;
-    const acq = getProgAcquisition(originProgId);
-    const transferredCost = parseFloat((acq.avgCostPerMile * milesOut).toFixed(2));
+   var totalSpent=0;var totalMil=0;state.transactions.forEach(function(t){if(t.program===originProgId&&t.type==='compra'){totalSpent+=t.cost||0;totalMil+=t.miles||0;}if(t.program===originProgId&&t.type==='transferencia'&&t.description&&t.description.indexOf('Entrada')>=0){totalSpent+=t.cost||0;totalMil+=t.miles||0;}});var avgCPM=totalMil>0?totalSpent/totalMil:0;var transferredCost=parseFloat((avgCPM*milesOut).toFixed(2));
     const destCostPerK = milesIn > 0 ? (transferredCost / milesIn) * 1000 : 0;
     state.transactions.push({
       id: baseId, date: row.date, program: originProgId, type: 'transferencia',
