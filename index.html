@@ -3412,8 +3412,8 @@ function parseCSVText(text) {
     const rawDest = colMap.dest >= 0 ? cols[colMap.dest] : '';
     const rawBonus = colMap.bonus >= 0 ? cols[colMap.bonus] : '';
     const date = parseFlexDate(rawDate) || new Date().toISOString().split('T')[0];
-    let miles = Math.round(Math.abs(typeof rawMiles === 'number' ? rawMiles : parseFloat(String(rawMiles).replace(/\./g,'').replace(',','.')) || 0));
-    let cost = Math.abs(typeof rawCost === 'number' ? rawCost : parseFloat(String(rawCost).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.')) || 0);
+    let if(typeof rawMiles === 'number') { miles = Math.round(Math.abs(rawMiles)); } else { var ms = String(rawMiles).trim(); if(ms.includes(',') && ms.includes('.')) { miles = Math.round(Math.abs(parseFloat(ms.replace(/\./g,'').replace(',','.')) || 0)); } else if(ms.includes(',')) { miles = Math.round(Math.abs(parseFloat(ms.replace(',','.')) || 0)); } else { miles = Math.round(Math.abs(parseFloat(ms) || 0)); } }
+    let if(typeof rawCost === 'number') { cost = Math.abs(rawCost); } else { var cs = String(rawCost).replace(/R\$\s*/,'').trim(); if(cs.includes(',') && cs.includes('.')) { cost = Math.abs(parseFloat(cs.replace(/\./g,'').replace(',','.')) || 0); } else if(cs.includes(',')) { cost = Math.abs(parseFloat(cs.replace(',','.')) || 0); } else { cost = Math.abs(parseFloat(cs) || 0); } }
     cost = Math.round(cost * 100) / 100;
     const type = mapMovType(rawType);
     const destProgId = mapDestToProgId(rawDest);
