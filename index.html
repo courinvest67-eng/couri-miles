@@ -3463,11 +3463,11 @@ function parseExcelData(data) {
     const date = parseFlexDate(rawDate) || new Date().toISOString().split('T')[0];
     let miles = 0;
     if(rawMiles !== '' && rawMiles !== null && rawMiles !== undefined) {
-      miles = Math.round(Math.abs(parseFloat(String(rawMiles).replace(/\./g,'').replace(',','.')) || 0));
+      miles = Math.round(Math.abs(parseFloat(String(rawMiles).replace(',','.')) || 0));
     }
     let cost = 0;
     if(rawCost !== '' && rawCost !== null && rawCost !== undefined) {
-      cost = Math.abs(parseFloat(String(rawCost).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.')) || 0);
+      cost = Math.abs(parseFloat(String(rawCost).replace(/R\$\s*/,'').replace(',','.')) || 0);
       cost = Math.round(cost * 100) / 100;
     }
     const type = mapMovType(rawType);
@@ -3562,7 +3562,18 @@ function showImportPreview(filename) {
 // =============================================================
 // BLOCO 5: SUBSTITUIR a função confirmImport INTEIRA
 // =============================================================
+function cancelImport() {
+  importedRows=[];
+  var area=document.getElementById('import-preview-area');
+  if(area) area.innerHTML='';
+}
 
+function toggleAllImport(checked) {
+  importedRows.forEach(function(_,i){
+    var el=document.getElementById('imp-chk-'+i);
+    if(el) el.checked=checked;
+  });
+}
 function confirmImport() {
   const prog = document.getElementById('import-program')?.value || importProgram;
   let count = 0;
