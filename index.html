@@ -3560,33 +3560,41 @@ function toggleAllImport(checked) {
   });
 }
 function confirmImport() {
-  const prog = document.getElementById('import-program')?.value || importProgram;
-  let count = 0;
-  importedRows.forEach((r, i) => {
-    if(i >= 20) {
-      addImportedTxSmart(r, prog, r.type, r.destProgId, r.bonusPct);
-      count++;
-      return;
+  var prog = document.getElementById('import-program') ? document.getElementById('import-program').value : importProgram;
+  var count = 0;
+  var normalRows = [];
+  var transferRows = [];
+  importedRows.forEach(function(r, i) {
+    var type = r.type;
+    var date = r.date;
+    var destId = r.destProgId;
+    if(i < 20) {
+      var chk = document.getElementById('imp-chk-'+i);
+      var typeEl = document.getElementById('imp-type-'+i);
+      var dateEl = document.getElementById('imp-date-'+i);
+      var destEl = document.getElementById('imp-dest-'+i);
+      if(!chk || !chk.checked) return;
+      if(typeEl) type = typeEl.value;
+      if(dateEl) date = dateEl.value;
+      if(destEl) destId = destEl.value;
     }
-    const chk = document.getElementById('imp-chk-'+i);
-    const typeEl = document.getElementById('imp-type-'+i);
-    const dateEl = document.getElementById('imp-date-'+i);
-    const destEl = document.getElementById('imp-dest-'+i);
-    if(chk && chk.checked) {
-      const type = typeEl ? typeEl.value : r.type;
-      const date = dateEl ? dateEl.value : r.date;
-      const destId = destEl ? destEl.value : r.destProgId;
-      const rowCopy = {...r, date, type};
-      addImportedTxSmart(rowCopy, prog, type, destId, r.bonusPct);
-      count++;
-    }
+    var rowCopy = {date:date, miles:r.miles, value:r.value, desc:r.desc, type:type, destProgId:destId, bonusPct:r.bonusPct, origin:r.origin};
+    if(type === 'transferencia') { transferRows.push(rowCopy); }
+    else { normalRows.push(rowCopy); }
+    count++;
   });
+  normalRows.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  transferRows.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  normalRows.forEach(function(row) { addImportedTxSmart(row, prog, row.type, row.destProgId, row.bonusPct); });
   recalcBalances();
+  transferRows.forEach(function(row) { addImportedTxSmart(row, prog, row.type, row.destProgId, row.bonusPct); });
+  recalcBalances();
+  state.transactions.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   saveState();
   importedRows = [];
-  const area = document.getElementById('import-preview-area');
-  if(area) area.innerHTML = `<div class="card" style="border-left:3px solid #10b981;padding:12px"><span style="color:#10b981;font-weight:600">✓ ${count} movimentações importadas com sucesso!</span></div>`;
-  setTimeout(() => { if(area) area.innerHTML = ''; render(); }, 2500);
+  var area = document.getElementById('import-preview-area');
+  if(area) area.innerHTML = '<div class="card" style="border-left:3px solid #10b981;padding:12px"><span style="color:#10b981;font-weight:600">' + count + ' movimentacoes importadas com sucesso!</span></div>';
+  setTimeout(function() { if(area) area.innerHTML = ''; render(); }, 2500);
 }
 
 
