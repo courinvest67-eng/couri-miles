@@ -3423,8 +3423,7 @@ function parseExcelData(data) {
     if(rawBonus !== '' && rawBonus !== null && rawBonus !== undefined && String(rawBonus) !== 'None') {
       var bonusVal = parseFloat(String(rawBonus).replace(',','.'));
       if(!isNaN(bonusVal) && bonusVal > 0) {
-        if(bonusVal >= 10) { bonusPct = Math.round(bonusVal); }
-        else { bonusPct = Math.round((bonusVal - 1) * 100); }
+       bonusPct = Math.round(bonusVal * 100);
       }
     }
     var desc = String(rawOrigin || '').trim();
