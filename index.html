@@ -3430,7 +3430,7 @@ function parseExcelData(data) {
     var desc = String(rawOrigin || '').trim();
     if(type === 'transferencia' && rawDest && String(rawDest) !== 'None') {
       desc = 'Livelo > ' + String(rawDest).trim();
-      if(bonusPct !== 0) { desc += bonusPct > 0 ? ' (bonus ' + bonusPct + '%)' : ' (' + bonusPct + '%)'; }
+      if(bonusPct !== 0) { desc += bonusPct > 0 ? ' (bonus ' + (100 + bonusPct) + '%)' : ' (' + (100 + bonusPct) + '%)'; }
     }
     if(!desc) desc = type === 'compra' ? 'Acumulo' : type === 'transferencia' ? 'Transferencia' : type === 'venda' ? 'Venda' : 'Utilizacao';
     if(miles === 0 && cost === 0) continue;
