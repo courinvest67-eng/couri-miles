@@ -3281,7 +3281,22 @@ async function handleImportFile(event) {
 // No GitHub, vá até a linha onde está "function parseCSVText"
 // e ANTES dela, cole tudo deste BLOCO 1
 // =============================================================
-
+function parseFlexDate(str) {
+  if(!str) return null;
+  if(str instanceof Date) {
+    if(isNaN(str.getTime())) return null;
+    return str.toISOString().split('T')[0];
+  }
+  const s = String(str).trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  m = s.match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+  if(m) {
+    const y = m[3].length===2 ? '20'+m[3] : m[3];
+    return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  }
+  return null;
+}
 function detectColumns(headers) {
   const h = headers.map(c => String(c||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim());
   const map = { date:-1, miles:-1, cost:-1, type:-1, origin:-1, dest:-1, bonus:-1 };
