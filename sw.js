@@ -7,8 +7,8 @@ const PRECACHE_ASSETS = [
   '/couri-miles/',
   '/couri-miles/index.html',
   '/couri-miles/manifest.json',
-  '/couri-miles/icons/icon-192x192.png',
-  '/couri-miles/icons/icon-512x512.png',
+  '/couri-miles/icon-192x192.png',
+  '/couri-miles/icon-512x512.png',
 ];
 
 // External CDN assets to cache
@@ -145,8 +145,8 @@ self.addEventListener('fetch', event => {
 self.addEventListener('push', event => {
   const options = {
     body: event.data ? event.data.text() : 'Nova promoção de milhas disponível!',
-    icon: '/couri-miles/icons/icon-192x192.png',
-    badge: '/couri-miles/icons/icon-96x96.png',
+    icon: '/couri-miles/icon-192x192.png',
+    badge: '/couri-miles/icon-96x96.png',
     vibrate: [200, 100, 200],
     tag: 'couri-miles-promo',
     renotify: true,
