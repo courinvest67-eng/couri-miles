@@ -3271,7 +3271,15 @@ async function handleImportFile(event) {
     alert('Nenhum dado encontrado no arquivo.');
     return;
   }
-
+var fname = file.name.toLowerCase();
+    if(fname.includes('livelo')) importProgram = 'livelo';
+    else if(fname.includes('smiles')) importProgram = 'smiles';
+    else if(fname.includes('azul') || fname.includes('tudoazul')) importProgram = 'tudoazul';
+    else if(fname.includes('latam')) importProgram = 'latampass';
+    else if(fname.includes('accor') || fname.includes('all ')) importProgram = 'allaccor';
+    else if(fname.includes('esfera')) importProgram = 'esfera';
+    else if(fname.includes('c6') || fname.includes('atomos')) importProgram = 'c6atomos';
+    else if(fname.includes('inter') || fname.includes('loop')) importProgram = 'interloop';
   importedRows = rawRows;
   showImportPreview(file.name);
 }
