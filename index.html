@@ -3443,7 +3443,7 @@ function parseExcelData(data) {
        bonusPct = Math.round(bonusVal * 100);
       }
     }
-    var desc = String(rawOrigin || '').trim();
+    var desc = rawDescription ? String(rawDescription).trim() : String(rawOrigin || '').trim();
     if(type === 'transferencia' && rawDest && String(rawDest) !== 'None') {
       desc = 'Livelo > ' + String(rawDest).trim();
       if(bonusPct !== 0) { desc += bonusPct > 0 ? ' (bonus ' + bonusPct + '%)' : ' (' + bonusPct + '%)'; }
