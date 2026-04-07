@@ -5,9 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Couri Miles">
+<meta name="apple-mobile-web-app-title" content="Couri Mile$">
 <meta name="theme-color" content="#060a14">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23111827'/><text x='50' y='62' text-anchor='middle' font-size='50'>✈</text></svg>">
+<meta name="description" content="Gestão inteligente de milhas aéreas. Controle acúmulo, vendas, transferências e resgates com análise de rentabilidade em tempo real.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Couri Mile$">
+<meta name="msapplication-TileColor" content="#060a14">
+<meta name="msapplication-TileImage" content="icons/icon-144x144.png">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-96x96.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
 <title>Couri Mile$ — Gestão de Milhas</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -4439,6 +4449,99 @@ if(useFirebase) {
   // No Firebase — auto offline
   document.getElementById('auth-screen').style.display='flex';
 }
+
+// ===== PWA: SERVICE WORKER REGISTRATION =====
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => {
+        console.log('[PWA] Service Worker registrado com sucesso:', reg.scope);
+        // Check for updates every 30 minutes
+        setInterval(() => reg.update(), 30 * 60 * 1000);
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if(newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+              // Show update notification
+              const banner = document.createElement('div');
+              banner.innerHTML = `
+                <div style="position:fixed;bottom:80px;left:16px;right:16px;background:linear-gradient(135deg,#1e3a5f,#0f2542);border:1px solid #f5c51844;border-radius:16px;padding:14px 18px;z-index:9999;display:flex;align-items:center;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,0.5);animation:modalIn 0.3s ease">
+                  <span style="font-size:20px">🔄</span>
+                  <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#eef0f6">Nova versão disponível!</div><div style="font-size:11px;color:#9ba4b8">Recarregue para atualizar o Couri Mile$</div></div>
+                  <button onclick="location.reload()" style="padding:8px 16px;background:#f5c518;color:#0a1628;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Atualizar</button>
+                </div>`;
+              document.body.appendChild(banner);
+            }
+          });
+        });
+      })
+      .catch(err => console.log('[PWA] Falha no registro do SW:', err));
+  });
+}
+
+// ===== PWA: INSTALL BANNER =====
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show custom install banner after 5 seconds
+  setTimeout(showInstallBanner, 5000);
+});
+
+function showInstallBanner() {
+  if(!deferredPrompt) return;
+  // Don't show if already installed or dismissed recently
+  if(window.matchMedia('(display-mode: standalone)').matches) return;
+  if(localStorage.getItem('pwa-install-dismissed')) {
+    const dismissed = parseInt(localStorage.getItem('pwa-install-dismissed'));
+    if(Date.now() - dismissed < 7 * 24 * 60 * 60 * 1000) return; // 7 days
+  }
+
+  const banner = document.createElement('div');
+  banner.id = 'pwa-install-banner';
+  banner.innerHTML = `
+    <div style="position:fixed;bottom:20px;left:16px;right:16px;background:linear-gradient(135deg,#0f2542,#1a3555);border:1px solid #f5c51833;border-radius:20px;padding:18px;z-index:9999;box-shadow:0 15px 50px rgba(0,0,0,0.6);animation:modalIn 0.4s cubic-bezier(0.34,1.56,0.64,1)">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <img src="icons/icon-96x96.png" style="width:48px;height:48px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.3)" alt="Couri Mile$">
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:800;color:#eef0f6">Instalar Couri Mile$</div>
+          <div style="font-size:11px;color:#9ba4b8;margin-top:2px">Acesso rápido direto da sua tela inicial</div>
+        </div>
+        <button onclick="dismissInstallBanner()" style="background:none;border:none;color:#556177;font-size:20px;cursor:pointer;padding:4px">✕</button>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="installPWA()" style="flex:1;padding:12px;border-radius:14px;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a1628;font-size:14px;font-weight:700;border:none;cursor:pointer;font-family:inherit;box-shadow:0 4px 15px rgba(245,197,24,0.3)">
+          📲 Instalar App
+        </button>
+        <button onclick="dismissInstallBanner()" style="padding:12px 18px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#9ba4b8;font-size:13px;cursor:pointer;font-family:inherit">
+          Depois
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(banner);
+}
+
+async function installPWA() {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  console.log('[PWA] Install outcome:', outcome);
+  deferredPrompt = null;
+  dismissInstallBanner();
+}
+
+function dismissInstallBanner() {
+  const banner = document.getElementById('pwa-install-banner');
+  if(banner) banner.remove();
+  localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+}
+
+// Detect if running as installed PWA
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] Couri Mile$ instalado com sucesso!');
+  deferredPrompt = null;
+  dismissInstallBanner();
+});
 </script>
 </body>
 </html>
