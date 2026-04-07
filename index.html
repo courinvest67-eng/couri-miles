@@ -1479,55 +1479,95 @@ function renderPromos() {
 async function fetchPromos() {
   promosLoading = true;
   const el = document.getElementById('promos-live');
-  if(el) el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)"><div style="font-size:24px;margin-bottom:8px">⏳</div>Buscando promoções de múltiplas fontes...</div>';
+  if(el) el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)"><div style="font-size:24px;margin-bottom:8px">⏳</div>Buscando promoções do Melhores Destinos...</div>';
 
   let allPromos = [];
 
-  // Source 1: Try RSS feeds via public proxy
-  const feeds = [
-    { url:'https://pontospravoar.com/feed/', source:'Pontos pra Voar' },
-    { url:'https://passageirodeprimeira.com/feed/', source:'Passageiro de Primeira' },
-    { url:'https://www.melhorescartoes.com.br/c/promocoes-milhas/feed/', source:'Melhores Cartões' },
-    { url:'https://www.melhoresdestinos.com.br/feed', source:'Melhores Destinos' },
-  ];
+  // Source 1: Scrape Melhores Destinos - Milhas e Cartões page
+  try {
+    const mdResp = await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://www.melhoresdestinos.com.br/noticias-milhas-e-cartoes'),{signal:AbortSignal.timeout(8000)});
+    if(mdResp.ok) {
+      const html = await mdResp.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const items = doc.querySelectorAll('a[href*="melhoresdestinos.com.br"], a[href*="melhorescartoes.com.br"]');
+      const seen = new Set();
+      items.forEach(a => {
+        const title = (a.textContent||'').trim();
+        const href = a.getAttribute('href')||'';
+        if(!title || title.length < 20 || title.length > 150) return;
+        const key = title.substring(0,35).toLowerCase().replace(/[^a-záàâãéèêíïóôõúç0-9]/g,'');
+        if(seen.has(key)) return;
+        const lower = title.toLowerCase();
+        if(!(lower.includes('bônus')||lower.includes('bonus')||lower.includes('bonificad')||lower.includes('desconto')||lower.includes('milha')||lower.includes('ponto')||lower.includes('transf')||lower.includes('smiles')||lower.includes('livelo')||lower.includes('latam')||lower.includes('azul')||lower.includes('esfera')||lower.includes('clube')||lower.includes('accor')||lower.includes('compra')||lower.includes('promo')||lower.includes('imperdível')||lower.includes('último'))) return;
+        if(lower.includes('vencid')||lower.includes('encerrad')||lower.includes('expirou')||lower.includes('acabou')||lower.includes('encerrou')) return;
+        if(lower.includes('ranking')||lower.includes('guia completo')||lower.includes('como funciona')||lower.includes('o que é')) return;
+        seen.add(key);
+        const bonus = extractBonus(title);
+        const programa = detectProgram(lower);
+        const tipo = lower.includes('transf')||lower.includes('bonificad')?'transferencia':
+          lower.includes('compra')||lower.includes('desconto')?'compra':
+          lower.includes('clube')||lower.includes('assin')?'clube':'promo';
+        const parent = a.closest('li') || a.parentElement;
+        const dateMatch = parent ? (parent.textContent||'').match(/(\d{2}\/\d{2}\/\d{4})/)?.[0] : '';
+        allPromos.push({
+          programa,
+          titulo: title.length>90?title.substring(0,90)+'…':title,
+          bonus,
+          tipo,
+          destaque: lower.includes('imperdível')||lower.includes('último dia')||lower.includes('últimas horas')||bonus.includes('100')||bonus.includes('133'),
+          link: href.startsWith('http') ? href : 'https://www.melhoresdestinos.com.br'+href,
+          source: 'Melhores Destinos',
+          date: dateMatch || '',
+        });
+      });
+    }
+  } catch(e) { console.log('MD scrape error:', e); }
 
-  for(const feed of feeds) {
-    try {
-      const resp = await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(feed.url)+'&count=8');
-      if(resp.ok) {
-        const data = await resp.json();
-        if(data.items) {
-          data.items.forEach(item => {
-            const title = item.title||'';
-            const lower = title.toLowerCase();
-            // Filter only miles/points related posts
-            if(lower.includes('milha')||lower.includes('ponto')||lower.includes('bônus')||lower.includes('bonus')||lower.includes('transf')||lower.includes('smiles')||lower.includes('livelo')||lower.includes('tudoazul')||lower.includes('latam')||lower.includes('accor')||lower.includes('esfera')) {
-              const tipo = lower.includes('transf')||lower.includes('bonificad')?'transferencia':
-                lower.includes('compra')||lower.includes('desconto')?'compra':
-                lower.includes('clube')||lower.includes('assin')?'clube':'promo';
-              const programa = detectProgram(lower);
-              const bonus = extractBonus(title);
-              allPromos.push({
-                programa,
-                titulo: title.length>80?title.substring(0,80)+'…':title,
-                bonus,
-                tipo,
-                destaque: lower.includes('imperdível')||lower.includes('último dia')||lower.includes('urgente')||bonus.includes('100')||bonus.includes('133'),
-                link: item.link,
-                source: feed.source,
-                date: item.pubDate?new Date(item.pubDate).toLocaleDateString('pt-BR'):'',
-              });
-            }
-          });
+  // Source 2: RSS feeds as supplement
+  if(allPromos.length < 8) {
+    const feeds = [
+      { url:'https://pontospravoar.com/feed/', source:'Pontos pra Voar' },
+      { url:'https://www.melhorescartoes.com.br/c/promocoes-milhas/feed/', source:'Melhores Cartões' },
+      { url:'https://www.melhoresdestinos.com.br/feed', source:'Melhores Destinos' },
+    ];
+    for(const feed of feeds) {
+      try {
+        const resp = await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(feed.url)+'&count=8');
+        if(resp.ok) {
+          const data = await resp.json();
+          if(data.items) {
+            data.items.forEach(item => {
+              const title = item.title||'';
+              const lower = title.toLowerCase();
+              if(lower.includes('milha')||lower.includes('ponto')||lower.includes('bônus')||lower.includes('bonus')||lower.includes('transf')||lower.includes('smiles')||lower.includes('livelo')||lower.includes('tudoazul')||lower.includes('latam')||lower.includes('accor')||lower.includes('esfera')||lower.includes('clube')) {
+                const tipo = lower.includes('transf')||lower.includes('bonificad')?'transferencia':
+                  lower.includes('compra')||lower.includes('desconto')?'compra':
+                  lower.includes('clube')||lower.includes('assin')?'clube':'promo';
+                const programa = detectProgram(lower);
+                const bonus = extractBonus(title);
+                allPromos.push({
+                  programa,
+                  titulo: title.length>90?title.substring(0,90)+'…':title,
+                  bonus,
+                  tipo,
+                  destaque: lower.includes('imperdível')||lower.includes('último dia')||lower.includes('urgente')||bonus.includes('100')||bonus.includes('133'),
+                  link: item.link,
+                  source: feed.source,
+                  date: item.pubDate?new Date(item.pubDate).toLocaleDateString('pt-BR'):'',
+                });
+              }
+            });
+          }
         }
-      }
-    } catch(e) { console.log('Feed error:',feed.source,e); }
+      } catch(e) { console.log('Feed error:',feed.source,e); }
+    }
   }
 
   // Remove duplicates by similar title
   const seen = new Set();
   allPromos = allPromos.filter(p=>{
-    const key = p.titulo.substring(0,40).toLowerCase();
+    const key = p.titulo.substring(0,35).toLowerCase().replace(/[^a-záàâãéèêíïóôõúç0-9]/g,'');
     if(seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -1543,9 +1583,10 @@ async function fetchPromos() {
     promosCache = renderPromoCards(allPromos);
   } else {
     promosCache = `<div style="text-align:center;padding:20px;color:var(--text-dim)">
-      <div style="font-size:14px;margin-bottom:8px">Não foi possível buscar os feeds automaticamente.</div>
+      <div style="font-size:14px;margin-bottom:8px">Não foi possível buscar promoções automaticamente.</div>
       <div style="font-size:12px">Consulte os sites abaixo para promoções atualizadas:</div>
       <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+        <a href="https://www.melhoresdestinos.com.br/noticias-milhas-e-cartoes" target="_blank" style="padding:6px 12px;background:#ff6b3522;color:#ff6b35;border-radius:8px;font-size:11px;font-weight:600;text-decoration:none">Melhores Destinos →</a>
         ${PROMO_SOURCES.map(s=>`<a href="${s.url}" target="_blank" style="padding:6px 12px;background:${s.color}22;color:${s.color};border-radius:8px;font-size:11px;font-weight:600;text-decoration:none">${s.name} →</a>`).join('')}
       </div>
     </div>`;
@@ -4136,23 +4177,65 @@ async function showPromoAlert() {
   if(window._promoAlertShown) return;
   window._promoAlertShown = true;
 
-  // Fallback - generic tips (no expiring promos)
+  // Fallback - link to page
   const fallbackPromos = [
-    { title:'Smiles e C6 Bank: ganhe até 70% de bônus na transferência de Átomos para Smiles', link:'https://www.smiles.com.br/transferencia-pontos', source:'Smiles', sourceColor:'#ff6600', bonus:'70%', date: new Date().toLocaleDateString('pt-BR'), isHot:true, isPriority:true },
-    { title:'LATAM Pass oferece 30% de milhas extras na transferência de pontos do cartão', link:'https://latampass.latam.com/pt_br/', source:'LATAM Pass', sourceColor:'#ED1C24', bonus:'30%', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:false },
-    { title:'Confira as transferências bonificadas ativas nos programas de fidelidade', link:'https://www.comparemania.com.br/promocoes-bonificadas', source:'Comparemania', sourceColor:'#10b981', bonus:'', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:false },
+    { title:'Confira as promoções ativas de milhas e cartões no Melhores Destinos', link:'https://www.melhoresdestinos.com.br/noticias-milhas-e-cartoes', source:'Melhores Destinos', sourceColor:'#ff6b35', bonus:'', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:true },
+    { title:'Veja as transferências bonificadas ativas nos programas de fidelidade', link:'https://www.melhorescartoes.com.br/c/promocoes-milhas/', source:'Melhores Cartões', sourceColor:'#3b82f6', bonus:'', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:false },
+    { title:'Acompanhe promoções de milhas e pontos em tempo real', link:'https://pontospravoar.com/', source:'Pontos pra Voar', sourceColor:'#f59e0b', bonus:'', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:false },
   ];
 
   const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7*24*60*60*1000);
+  const fourteenDaysAgo = new Date(now.getTime() - 14*24*60*60*1000);
 
   let promos = [];
+  
+  // Source 1: Scrape Melhores Destinos - Milhas e Cartões page directly
   try {
+    const mdResp = await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://www.melhoresdestinos.com.br/noticias-milhas-e-cartoes'),{signal:AbortSignal.timeout(8000)});
+    if(mdResp.ok) {
+      const html = await mdResp.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const items = doc.querySelectorAll('a[href*="melhoresdestinos.com.br"], a[href*="melhorescartoes.com.br"]');
+      const seen = new Set();
+      items.forEach(a => {
+        const title = (a.textContent||'').trim();
+        const href = a.getAttribute('href')||'';
+        if(!title || title.length < 20 || title.length > 150) return;
+        if(seen.has(title.substring(0,40))) return;
+        const lower = title.toLowerCase();
+        // Filter: only miles/points/promo related
+        if(!(lower.includes('bônus')||lower.includes('bonus')||lower.includes('bonificad')||lower.includes('desconto')||lower.includes('milha')||lower.includes('ponto')||lower.includes('transf')||lower.includes('smiles')||lower.includes('livelo')||lower.includes('latam')||lower.includes('azul')||lower.includes('esfera')||lower.includes('clube')||lower.includes('accor')||lower.includes('compra')||lower.includes('promo')||lower.includes('imperdível')||lower.includes('último'))) return;
+        // Skip expired
+        if(lower.includes('vencid')||lower.includes('encerrad')||lower.includes('expirou')||lower.includes('acabou')||lower.includes('encerrou')) return;
+        // Skip non-promo content
+        if(lower.includes('ranking')||lower.includes('guia completo')||lower.includes('como funciona')||lower.includes('o que é')) return;
+        seen.add(title.substring(0,40));
+        const bonus = title.match(/(\d+[\.,]?\d*)\s*%/);
+        // Try to extract date from sibling elements
+        const parent = a.closest('li') || a.parentElement;
+        const dateText = parent ? (parent.textContent||'').match(/(\d{2}\/\d{2}\/\d{4})/)?.[0] : '';
+        promos.push({
+          title: title.length>90 ? title.substring(0,90)+'…' : title,
+          link: href.startsWith('http') ? href : 'https://www.melhoresdestinos.com.br'+href,
+          source: 'Melhores Destinos',
+          sourceColor: '#ff6b35',
+          bonus: bonus?bonus[0]:'',
+          pubDate: null,
+          date: dateText || '',
+          isHot: lower.includes('imperdível')||lower.includes('último dia')||lower.includes('últimas horas')||(bonus&&parseInt(bonus[1])>=70),
+          isPriority: true,
+        });
+      });
+    }
+  } catch(e) { console.log('MD scrape error:', e); }
+
+  // Source 2: RSS feeds as supplement
+  if(promos.length < 5) {
     const feeds = [
       { url:'https://www.melhoresdestinos.com.br/feed', source:'Melhores Destinos', color:'#ff6b35', priority:true },
       { url:'https://pontospravoar.com/feed/', source:'Pontos pra Voar', color:'#f59e0b', priority:false },
       { url:'https://www.melhorescartoes.com.br/c/promocoes-milhas/feed/', source:'Melhores Cartões', color:'#3b82f6', priority:false },
-      { url:'https://passageirodeprimeira.com/feed/', source:'Passageiro de Primeira', color:'#ef4444', priority:false },
     ];
     for(const feed of feeds) {
       try {
@@ -4160,15 +4243,11 @@ async function showPromoAlert() {
         if(resp.ok) {
           const data = await resp.json();
           if(data.items) data.items.forEach(item => {
-            // Filter: only posts from last 7 days
             const pubDate = item.pubDate ? new Date(item.pubDate) : null;
-            if(pubDate && pubDate < sevenDaysAgo) return;
-
-            // Filter: skip posts with "vencido", "encerrada", "expirou", "acabou"
+            if(pubDate && pubDate < fourteenDaysAgo) return;
             const t = (item.title||'').toLowerCase();
             if(t.includes('vencid')||t.includes('encerrad')||t.includes('expirou')||t.includes('acabou')||t.includes('encerrou')) return;
-
-            if(t.includes('bônus')||t.includes('bonus')||t.includes('bonificad')||t.includes('desconto')||t.includes('imperdível')||t.includes('último dia')||t.includes('milha')||t.includes('ponto')||t.includes('transf')||t.includes('smiles')||t.includes('livelo')||t.includes('latam')||t.includes('azul')||t.includes('esfera')||t.includes('clube')) {
+            if(t.includes('bônus')||t.includes('bonus')||t.includes('bonificad')||t.includes('desconto')||t.includes('imperdível')||t.includes('último dia')||t.includes('milha')||t.includes('ponto')||t.includes('transf')||t.includes('smiles')||t.includes('livelo')||t.includes('latam')||t.includes('azul')||t.includes('esfera')||t.includes('clube')||t.includes('accor')) {
               const bonus = (item.title||'').match(/(\d+[\.,]?\d*)\s*%/);
               promos.push({
                 title: item.title,
@@ -4186,10 +4265,16 @@ async function showPromoAlert() {
         }
       } catch(e) {}
     }
-  } catch(e) {}
+  }
 
-  // Use fallback if no live promos found
-  if(promos.length===0) promos = fallbackPromos;
+  // Deduplicate by similar title
+  const seenTitles = new Set();
+  promos = promos.filter(p=>{
+    const key = p.title.substring(0,35).toLowerCase().replace(/[^a-záàâãéèêíïóôõúç0-9]/g,'');
+    if(seenTitles.has(key)) return false;
+    seenTitles.add(key);
+    return true;
+  });
 
   // Sort: Melhores Destinos first, then hottest, then most recent
   promos.sort((a,b)=>{
