@@ -2552,6 +2552,15 @@ function updateUsoCost() {
   const miles = parseInt(document.getElementById('f-miles')?.value)||0;
   const savedValue = parseFloat(document.getElementById('f-cost')?.value)||0;
   const acq = getProgAcquisition(progId);
+  if(progId === 'allaccor' && miles > 0 && savedValue === 0) {
+      var eurosVal = (miles / 1000) * 20;
+      var euroRate = (state.marketValues && state.marketValues.allaccor && state.marketValues.allaccor.euroRate) || 5.93;
+      var marketValueBRL = Math.round(eurosVal * euroRate * 100) / 100;
+      var myCost = acq.avgCostPerMile * miles;
+      var autoEconomy = Math.round((marketValueBRL - myCost) * 100) / 100;
+      var costEl = document.getElementById('f-cost');
+      if(costEl && autoEconomy > 0) { costEl.value = autoEconomy.toFixed(2); savedValue = autoEconomy; }
+    }
 
   const cpkEl = document.getElementById('f-uso-cpk');
   const totalEl = document.getElementById('f-uso-total-cost');
