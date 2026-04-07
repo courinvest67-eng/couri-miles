@@ -3452,7 +3452,7 @@ function parseExcelData(data) {
     if(miles === 0 && cost === 0) continue;
    var finalValue = cost;
     if(type === 'venda') finalValue = revenue > 0 ? revenue : cost;
-    if(type === 'uso') finalValue = economy > 0 ? economy : cost;
+   if(type === 'uso') { if(economy > 0) { finalValue = economy; } else if(importProgram === 'allaccor' || (rawOrigin && String(rawOrigin).toLowerCase().includes('accor'))) { var eurosVal = (miles / 1000) * 20; var euroRate = (state.marketValues && state.marketValues.allaccor && state.marketValues.allaccor.euroRate) || 5.93; finalValue = Math.round(eurosVal * euroRate * 100) / 100; } else { finalValue = cost; } }
     rows.push({raw:cols, date:date, miles:miles, value:finalValue, desc:desc, type:type, destProgId:destProgId, bonusPct:bonusPct, origin:String(rawOrigin||'').trim()});
   }
   return rows;
