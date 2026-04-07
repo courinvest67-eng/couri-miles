@@ -3423,6 +3423,9 @@ function parseExcelData(data) {
     var rawOrigin = colMap.origin >= 0 ? cols[colMap.origin] : '';
     var rawDest = colMap.dest >= 0 ? cols[colMap.dest] : '';
     var rawBonus = colMap.bonus >= 0 ? cols[colMap.bonus] : '';
+    var rawRevenue = colMap.revenue >= 0 ? cols[colMap.revenue] : '';
+    var rawDescription = colMap.description >= 0 ? cols[colMap.description] : '';
+    var rawEconomy = colMap.economy >= 0 ? cols[colMap.economy] : '';
     var date = parseFlexDate(rawDate) || new Date().toISOString().split('T')[0];
     var miles = typeof rawMiles === 'number' ? Math.round(Math.abs(rawMiles)) : Math.round(Math.abs(parseFloat(String(rawMiles).replace(',','.')) || 0));
     var cost = typeof rawCost === 'number' ? Math.abs(rawCost) : Math.abs(parseFloat(String(rawCost).replace(',','.')) || 0);
