@@ -2550,13 +2550,16 @@ function updateUsoCost() {
 
   const progId = document.getElementById('f-program')?.value;
   const miles = parseInt(document.getElementById('f-miles')?.value)||0;
-  const savedValue = parseFloat(document.getElementById('f-cost')?.value)||0;
+  let savedValue = parseFloat(document.getElementById('f-cost')?.value)||0;
   const acq = getProgAcquisition(progId);
-  if(progId === 'allaccor' && miles > 0 && savedValue === 0) {
-      var eurosVal = (miles / 1000) * 20;
-      var euroRate = (state.marketValues && state.marketValues.allaccor && state.marketValues.allaccor.euroRate) || 5.93;
-      var marketValueBRL = Math.round(eurosVal * euroRate * 100) / 100;
-      var costEl = document.getElementById('f-cost');
+  // ALL Accor: always auto-fill with market value in BRL (euros × exchange rate)
+  if(progId === 'allaccor' && miles > 0) {
+      const mv = getMarketVal('allaccor');
+      const euroPerK = mv.currency==='EUR' ? mv.perK : 20;
+      const eurosVal = (miles / 1000) * euroPerK;
+      const euroRate = parseFloat(document.getElementById('f-euro-rate')?.value) || (state.marketValues && state.marketValues.allaccor && state.marketValues.allaccor.euroRate) || 5.93;
+      const marketValueBRL = Math.round(eurosVal * euroRate * 100) / 100;
+      const costEl = document.getElementById('f-cost');
       if(costEl && marketValueBRL > 0) { costEl.value = marketValueBRL.toFixed(2); savedValue = marketValueBRL; }
     }
 
