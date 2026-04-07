@@ -1744,9 +1744,17 @@ function exportReportXLSX(txs) {
   txs.forEach(t => {
     const prog = PROGRAMS.find(p=>p.id===t.program);
     const val = t.type==='uso'?(t.usoCostTotal||0):t.cost;
+    let desc = t.description;
+    if(t.type==='venda') {
+      const acqCost = t.acquisitionCost || 0;
+      const profit = t.saleProfit != null ? t.saleProfit : (t.cost - acqCost);
+      const pct = acqCost > 0 ? ((profit / acqCost) * 100).toFixed(1) : '—';
+      const label = profit >= 0 ? 'Lucro' : 'Prejuízo';
+      desc += ` | ${label}: R$ ${Math.abs(profit).toFixed(2)} (${pct}%)`;
+    }
     movData.push([
       t.date, prog.name, TYPE_LABELS[t.type],
-      t.miles, val, t.type==='uso'?(t.usoCostPerK||0):(t.costPerK||0), t.description,
+      t.miles, val, t.type==='uso'?(t.usoCostPerK||0):(t.costPerK||0), desc,
     ]);
   });
   const ws3 = XLSX.utils.aoa_to_sheet(movData);
