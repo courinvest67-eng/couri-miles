@@ -3306,16 +3306,19 @@ function parseFlexDate(str) {
   return null;
 }
 function detectColumns(headers) {
-  const h = headers.map(c => String(c||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim());
-  const map = { date:-1, miles:-1, cost:-1, type:-1, origin:-1, dest:-1, bonus:-1 };
-  h.forEach((col, i) => {
+  var h = headers.map(function(c){return String(c||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();});
+  var map = { date:-1, miles:-1, cost:-1, type:-1, origin:-1, dest:-1, bonus:-1, revenue:-1, description:-1, economy:-1 };
+  h.forEach(function(col, i) {
     if(col.includes('data') || col.includes('date')) map.date = i;
     else if(col.includes('milha') || col.includes('miles') || col.includes('ponto') || col.includes('pts') || col.includes('quantidade')) map.miles = i;
-    else if(col.includes('custo') || col.includes('cost') || col.includes('valor') || col.includes('preco') || col.includes('price') || col.includes('investido')) map.cost = i;
+    else if(col.includes('custo') && !col.includes('euro')) map.cost = i;
+    else if(col.includes('receita') || col.includes('revenue')) map.revenue = i;
     else if(col.includes('movimenta') || col.includes('tipo') || col.includes('type') || col.includes('operacao')) map.type = i;
     else if(col.includes('origem') || col.includes('origin') || col.includes('fonte') || col.includes('source')) map.origin = i;
-    else if(col.includes('destino') || col.includes('dest') || col.includes('target') || col.includes('programa destino')) map.dest = i;
+    else if(col.includes('destino') || col.includes('dest') || col.includes('target')) map.dest = i;
     else if(col.includes('bonus') || col.includes('bonifica') || col.includes('multiplic')) map.bonus = i;
+    else if(col.includes('descricao') || col.includes('description')) map.description = i;
+    else if(col.includes('econom') || col.includes('desconto')) map.economy = i;
   });
   return map;
 }
