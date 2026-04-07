@@ -1679,7 +1679,7 @@ function exportReportXLSX(txs) {
 
   // --- Sheet 1: Resumo ---
   const resumo = [
-    ['MILES CONTROL — RELATÓRIO DE MILHAS'],
+    ['COURI MILE$ — RELATÓRIO DE MILHAS'],
     [''],
     ['Período:', periodLabel],
     ['Gerado em:', new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR')],
@@ -1743,10 +1743,10 @@ function exportReportXLSX(txs) {
   ];
   txs.forEach(t => {
     const prog = PROGRAMS.find(p=>p.id===t.program);
-    const val = t.type==='uso'?(t.savedValue||0):t.cost;
+    const val = t.type==='uso'?(t.usoCostTotal||0):t.cost;
     movData.push([
       t.date, prog.name, TYPE_LABELS[t.type],
-      t.miles, val, t.costPerK||0, t.description,
+      t.miles, val, t.type==='uso'?(t.usoCostPerK||0):(t.costPerK||0), t.description,
     ]);
   });
   const ws3 = XLSX.utils.aoa_to_sheet(movData);
