@@ -2210,10 +2210,11 @@ function renderModal() {
       <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="f-date" value="${today}" onchange="onFormDateChange()"></div>
       <div class="form-group"><label class="form-label">Milhas</label><input type="number" class="form-input" id="f-miles" placeholder="50000" oninput="updateCostPerK()"></div>
     </div>
-    <div class="form-grid">
-      <div class="form-group"><label class="form-label">${formType==='venda'?'Valor Recebido (R$)':formType==='uso'?'Valor Economizado (R$)':'Custo (R$)'}</label><input type="number" class="form-input" id="f-cost" placeholder="0.00" oninput="updateCostPerK()"></div>
+    <div class="form-grid" id="cost-cpk-row" style="${formType==='uso'?'display:none':''}">
+      <div class="form-group"><label class="form-label">${formType==='venda'?'Valor Recebido (R$)':'Custo (R$)'}</label><input type="number" class="form-input" id="f-cost" placeholder="0.00" oninput="updateCostPerK()"></div>
       <div class="form-group"><label class="form-label">R$/Milheiro</label><div class="cost-display mono" id="f-cpk">—</div></div>
     </div>
+    <input type="hidden" id="f-cost-uso" value="0">
 
     <div id="uso-type-section" style="display:${formType==='uso'?'block':'none'};margin-bottom:14px">
       <label class="form-label">Tipo de Utilização</label>
@@ -2550,18 +2551,26 @@ function updateUsoCost() {
 
   const progId = document.getElementById('f-program')?.value;
   const miles = parseInt(document.getElementById('f-miles')?.value)||0;
-  let savedValue = parseFloat(document.getElementById('f-cost')?.value)||0;
   const acq = getProgAcquisition(progId);
-  // ALL Accor: always auto-fill with market value in BRL (euros × exchange rate)
+  
+  // Calculate savedValue (market value in BRL) automatically
+  let savedValue = 0;
   if(progId === 'allaccor' && miles > 0) {
       const mv = getMarketVal('allaccor');
       const euroPerK = mv.currency==='EUR' ? mv.perK : 20;
       const eurosVal = (miles / 1000) * euroPerK;
       const euroRate = parseFloat(document.getElementById('f-euro-rate')?.value) || (state.marketValues && state.marketValues.allaccor && state.marketValues.allaccor.euroRate) || 5.93;
-      const marketValueBRL = Math.round(eurosVal * euroRate * 100) / 100;
-      const costEl = document.getElementById('f-cost');
-      if(costEl && marketValueBRL > 0) { costEl.value = marketValueBRL.toFixed(2); savedValue = marketValueBRL; }
-    }
+      savedValue = Math.round(eurosVal * euroRate * 100) / 100;
+  } else if(miles > 0) {
+      // For other programs, use market value if available
+      const mv = getMarketVal(progId);
+      if(mv && mv.perK > 0) {
+        savedValue = (miles / 1000) * mv.perK;
+      }
+  }
+  // Store in hidden field for submitTransaction
+  const hiddenEl = document.getElementById('f-cost-uso');
+  if(hiddenEl) hiddenEl.value = savedValue.toFixed(2);
 
   const cpkEl = document.getElementById('f-uso-cpk');
   const totalEl = document.getElementById('f-uso-total-cost');
@@ -3000,7 +3009,7 @@ function submitTransfer() {
 function submitForm() {
   const miles=parseInt(document.getElementById('f-miles').value)||0;
   if(!miles) return;
-  const cost=parseFloat(document.getElementById('f-cost').value)||0;
+  const cost = formType==='uso' ? (parseFloat(document.getElementById('f-cost-uso')?.value)||0) : (parseFloat(document.getElementById('f-cost').value)||0);
   const program=document.getElementById('f-program').value;
 
   // Calculate profit for venda
@@ -3208,11 +3217,12 @@ function renderEditModal(tx, id) {
       <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="f-edit-date" value="${dateVal}"></div>
       <div class="form-group"><label class="form-label">Milhas</label><input type="number" class="form-input" id="f-edit-miles" value="${milesVal}" oninput="updateEditCpk();renderEditModal(state.transactions.find(t=>t.id===${id}),${id})"></div>
     </div>
-    ${!isTransfer?`
+    ${!isTransfer&&editingType!=='uso'?`
     <div class="form-grid">
       <div class="form-group"><label class="form-label">${costLabel}</label><input type="number" class="form-input" id="f-edit-cost" value="${costVal}" oninput="updateEditCpk();renderEditModal(state.transactions.find(t=>t.id===${id}),${id})"></div>
       <div class="form-group"><label class="form-label">R$/Milheiro</label><div class="cost-display mono" id="f-edit-cpk" style="color:#f59e0b">${milesVal>0&&costVal>0?'R$ '+((costVal/milesVal)*1000).toFixed(2):'—'}</div></div>
     </div>`:''}
+    ${editingType==='uso'?`<input type="hidden" id="f-edit-cost" value="${costVal}">`:''}
     ${vendaSection}
     ${usoSection}
     ${cpfSection}
