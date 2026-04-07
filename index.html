@@ -3430,6 +3430,10 @@ function parseExcelData(data) {
     var miles = typeof rawMiles === 'number' ? Math.round(Math.abs(rawMiles)) : Math.round(Math.abs(parseFloat(String(rawMiles).replace(',','.')) || 0));
     var cost = typeof rawCost === 'number' ? Math.abs(rawCost) : Math.abs(parseFloat(String(rawCost).replace(',','.')) || 0);
     cost = Math.round(cost * 100) / 100;
+    var revenue = typeof rawRevenue === 'number' ? Math.abs(rawRevenue) : Math.abs(parseFloat(String(rawRevenue).replace(',','.')) || 0);
+    revenue = Math.round(revenue * 100) / 100;
+    var economy = typeof rawEconomy === 'number' ? Math.abs(rawEconomy) : Math.abs(parseFloat(String(rawEconomy).replace(',','.')) || 0);
+    economy = Math.round(economy * 100) / 100;
     var type = mapMovType(rawType);
     var destProgId = mapDestToProgId(rawDest);
     var bonusPct = 0;
