@@ -2141,7 +2141,7 @@ function renderModal() {
     return `<button class="type-btn ${active?'active':''}" style="${active?`border-color:${TYPE_COLORS[k]};background:${TYPE_COLORS[k]}22;color:${TYPE_COLORS[k]}`:''}" onclick="setFormType('${k}')">${v}</button>`;
   }).join('');
 
-  const costLabel = formType==='venda'?'Valor Recebido (R$)':formType==='uso'?'Valor Economizado (R$)':'Custo (R$)';
+  const costLabel = formType==='venda'?'Valor Recebido (R$)':formType==='uso'?'Valor em Dinheiro (R$)':'Custo (R$)';
 
   // Transfer-specific fields
   const transferFields = isTransfer ? `
@@ -2556,10 +2556,8 @@ function updateUsoCost() {
       var eurosVal = (miles / 1000) * 20;
       var euroRate = (state.marketValues && state.marketValues.allaccor && state.marketValues.allaccor.euroRate) || 5.93;
       var marketValueBRL = Math.round(eurosVal * euroRate * 100) / 100;
-      var myCost = acq.avgCostPerMile * miles;
-      var autoEconomy = Math.round((marketValueBRL - myCost) * 100) / 100;
       var costEl = document.getElementById('f-cost');
-      if(costEl && autoEconomy > 0) { costEl.value = autoEconomy.toFixed(2); savedValue = autoEconomy; }
+      if(costEl && marketValueBRL > 0) { costEl.value = marketValueBRL.toFixed(2); savedValue = marketValueBRL; }
     }
 
   const cpkEl = document.getElementById('f-uso-cpk');
@@ -3036,9 +3034,18 @@ function submitForm() {
     const acqUso = getProgAcquisition(program);
     tx.usoCostTotal = parseFloat((acqUso.avgCostPerMile * miles).toFixed(2));
     tx.usoCostPerK = acqUso.avgCostPerK;
-    // If savedValue is 0 but we have cost data, auto-fill with miles cost
-    if(tx.savedValue===0 && tx.usoCostTotal>0) {
-      tx.savedValue = tx.usoCostTotal;
+    // If savedValue is 0 but we have cost data, auto-fill
+    if(tx.savedValue===0) {
+      if(program === 'allaccor' && miles > 0) {
+        // For ALL Accor, use the market value in BRL (euros * exchange rate)
+        const mv = getMarketVal('allaccor');
+        const euroPerK = mv.currency==='EUR' ? mv.perK : 20;
+        const eurosFromMiles = (miles / 1000) * euroPerK;
+        const euroRate = (state.marketValues && state.marketValues.allaccor && state.marketValues.allaccor.euroRate) || 5.93;
+        tx.savedValue = Math.round(eurosFromMiles * euroRate * 100) / 100;
+      } else if(tx.usoCostTotal>0) {
+        tx.savedValue = tx.usoCostTotal;
+      }
     }
   }
 
