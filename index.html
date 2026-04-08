@@ -665,13 +665,11 @@ function getProgAcquisition(progId) {
 function getMetrics() {
   const txs = state.transactions;
   const totalMiles = Object.values(state.balances).reduce((a,b)=>a+b,0);
-  // Calculate total spent and total miles using getProgAcquisition for consistency
-  let totalSpent = 0;
+  // Calculate total spent: only actual purchases (money out of pocket)
+  let totalSpent = txs.filter(t=>t.type==='compra').reduce((a,t)=>a+t.cost,0);
   let totalMilesAcquired = 0;
   PROGRAMS.forEach(p => {
     const acq = getProgAcquisition(p.id);
-    totalSpent += txs.filter(t=>t.program===p.id&&t.type==='compra').reduce((a,t)=>a+t.cost,0)
-      + txs.filter(t=>t.program===p.id&&t.type==='transferencia'&&t.description.startsWith('↙')&&t.cost>0).reduce((a,t)=>a+t.cost,0);
     totalMilesAcquired += acq.totalMiles;
   });
   const avgCostPerK = totalMilesAcquired>0 ? (totalSpent/totalMilesAcquired)*1000 : 0;
@@ -1708,8 +1706,7 @@ function calcReportMetrics(txs) {
   const totalTransIn = txs.filter(t=>t.type==='transferencia'&&t.description.startsWith('↙')).reduce((a,t)=>a+t.miles,0);
   const totalBoomerang = txs.filter(t=>t.type==='transferencia'&&(t.description.startsWith('↩')||t.isBoomerang)).reduce((a,t)=>a+t.miles,0);
   const totalMilesAcquired = totalBought + totalTransIn + totalBoomerang;
-  const totalSpent = txs.filter(t=>t.type==='compra').reduce((a,t)=>a+t.cost,0)
-    + txs.filter(t=>t.type==='transferencia'&&t.description.startsWith('↙')&&t.cost>0).reduce((a,t)=>a+t.cost,0);
+  const totalSpent = txs.filter(t=>t.type==='compra').reduce((a,t)=>a+t.cost,0);
   const totalSold = txs.filter(t=>t.type==='venda').reduce((a,t)=>a+t.miles,0);
   const totalRevenue = txs.filter(t=>t.type==='venda').reduce((a,t)=>a+t.cost,0);
   const totalRedeemed = txs.filter(t=>t.type==='uso').reduce((a,t)=>a+t.miles,0);
