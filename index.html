@@ -903,6 +903,10 @@ function renderPrograms(m) {
         <div class="mono" style="font-size:18px;font-weight:800;color:#8b5cf6">${fCur(getPortfolioValue(p.id))}</div>
       </div>
       ${sparkSVG(sparkData,p.accent)}
+      ${(p.id==='latampass'||p.id==='smiles'||p.id==='tudoazul') && bal>0 ? `
+      <a href="https://www.maxmilhas.com.br/vender-milhas" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;margin-top:8px;border-radius:10px;background:linear-gradient(135deg,#22c99715,#10b98110);border:1px solid #22c99733;color:#22c997;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit">
+        💰 Vender milhas ${p.name} na MaxMilhas
+      </a>` : ''}
     </div>`;
   }).join('')}</div>`;
 }
@@ -4278,17 +4282,17 @@ async function showPromoAlert() {
         if(seen.has(title.substring(0,40))) return;
         const lower = title.toLowerCase();
         
-        // STRICT FILTER: Must be about miles/points programs specifically
-        // Must mention at least one program OR miles-specific action
-        const hasProgram = lower.includes('smiles')||lower.includes('livelo')||lower.includes('latam pass')||lower.includes('tudoazul')||lower.includes('tudo azul')||lower.includes('azul fidelidade')||lower.includes('esfera')||lower.includes('accor')||lower.includes('c6 bank')||lower.includes('átomos')||lower.includes('inter loop');
-        const hasMilesAction = lower.includes('transferência de ponto')||lower.includes('transferir ponto')||lower.includes('bonificação')||lower.includes('bonificad')||lower.includes('bônus na transferência')||lower.includes('bonus na transferência')||lower.includes('clube livelo')||lower.includes('clube smiles')||lower.includes('compra de milha')||lower.includes('compra de ponto')||lower.includes('milhas extra')||lower.includes('pontos extra');
-        const hasMilesKeyword = (lower.includes('milha')||lower.includes('ponto')) && (lower.includes('bônus')||lower.includes('bonus')||lower.includes('transferên')||lower.includes('clube')||lower.includes('compra'));
+        // FILTER: Must be about miles/points programs
+        const hasProgram = lower.includes('smiles')||lower.includes('livelo')||lower.includes('latam')||lower.includes('tudoazul')||lower.includes('tudo azul')||lower.includes('azul')||lower.includes('esfera')||lower.includes('accor')||lower.includes('c6 bank')||lower.includes('c6bank')||lower.includes('átomos')||lower.includes('atomos')||lower.includes('inter loop');
+        const hasMilesAction = lower.includes('transferência de ponto')||lower.includes('transferir ponto')||lower.includes('bonificação')||lower.includes('bonificad')||lower.includes('bônus na transferência')||lower.includes('bonus na transferência')||lower.includes('clube livelo')||lower.includes('clube smiles')||lower.includes('clube latam')||lower.includes('compra de milha')||lower.includes('compra de ponto')||lower.includes('milhas extra')||lower.includes('pontos extra');
+        const hasMilesKeyword = (lower.includes('milha')||lower.includes('ponto')||lower.includes('milheiro')) && (lower.includes('bônus')||lower.includes('bonus')||lower.includes('transferên')||lower.includes('clube')||lower.includes('compra')||lower.includes('desconto')||lower.includes('promo'));
+        const hasPromoWithProgram = hasProgram && (lower.includes('bônus')||lower.includes('bonus')||lower.includes('transferên')||lower.includes('clube')||lower.includes('desconto')||lower.includes('compra')||lower.includes('promo')||lower.includes('ofere'));
         
-        // Must match at least one strict criteria
-        if(!(hasProgram && (lower.includes('bônus')||lower.includes('bonus')||lower.includes('transferên')||lower.includes('clube')||lower.includes('desconto')||lower.includes('compra'))) && !hasMilesAction && !hasMilesKeyword) return;
+        // Must match at least one criteria
+        if(!hasPromoWithProgram && !hasMilesAction && !hasMilesKeyword) return;
         
         // EXCLUDE: things that are NOT miles promos
-        if(lower.includes('cupom')||lower.includes('passagen')||lower.includes('hotel')||lower.includes('resort')||lower.includes('cruzeiro')||lower.includes('seguro viagem')||lower.includes('sala vip')||lower.includes('cartão de crédito')||lower.includes('ranking')||lower.includes('guia completo')||lower.includes('como funciona')||lower.includes('o que é')||lower.includes('status')||lower.includes('review')||lower.includes('avaliação')) return;
+        if(lower.includes('cupom')||lower.includes('passagen')||lower.includes('hotel barato')||lower.includes('resort')||lower.includes('cruzeiro')||lower.includes('seguro viagem')||lower.includes('ranking')||lower.includes('guia completo')||lower.includes('como funciona')||lower.includes('o que é')||lower.includes('review')||lower.includes('avaliação')) return;
         
         // EXCLUDE: expired promos
         if(lower.includes('vencid')||lower.includes('encerrad')||lower.includes('expirou')||lower.includes('acabou')||lower.includes('encerrou')) return;
@@ -4305,10 +4309,10 @@ async function showPromoAlert() {
           if(parts.length===3) parsedDate = new Date(parts[2]+'-'+parts[1]+'-'+parts[0]+'T12:00:00');
         }
         const daysSince = parsedDate ? Math.floor((now - parsedDate) / (24*60*60*1000)) : null;
-        // Skip "últimas horas" / "último dia" promos older than 1 day
-        if((lower.includes('últimas horas')||lower.includes('último dia')||lower.includes('últimos dias')) && daysSince !== null && daysSince > 1) return;
-        // Skip any promo older than 3 days
-        if(daysSince !== null && daysSince > 3) return;
+        // Skip "últimas horas" / "último dia" promos older than 2 days
+        if((lower.includes('últimas horas')||lower.includes('último dia')||lower.includes('últimos dias')) && daysSince !== null && daysSince > 2) return;
+        // Skip promos older than 7 days
+        if(daysSince !== null && daysSince > 7) return;
         promos.push({
           title: title.length>90 ? title.substring(0,90)+'…' : title,
           link: href.startsWith('http') ? href : 'https://www.melhoresdestinos.com.br'+href,
@@ -4341,18 +4345,19 @@ async function showPromoAlert() {
             const t = (item.title||'').toLowerCase();
             // Skip expired keywords
             if(t.includes('vencid')||t.includes('encerrad')||t.includes('expirou')||t.includes('acabou')||t.includes('encerrou')) return;
-            // Skip urgency promos older than 1 day
+            // Skip urgency promos older than 2 days
             const daysSinceRss = pubDate ? Math.floor((now - pubDate) / (24*60*60*1000)) : null;
-            if((t.includes('últimas horas')||t.includes('último dia')||t.includes('últimos dias')) && daysSinceRss !== null && daysSinceRss > 1) return;
-            // Skip any promo older than 3 days
-            if(daysSinceRss !== null && daysSinceRss > 3) return;
-            // STRICT: must be about miles programs
-            const hasProgRss = t.includes('smiles')||t.includes('livelo')||t.includes('latam pass')||t.includes('tudoazul')||t.includes('tudo azul')||t.includes('azul fidelidade')||t.includes('esfera')||t.includes('accor')||t.includes('c6 bank')||t.includes('átomos');
-            const hasMilesRss = (t.includes('milha')||t.includes('ponto')) && (t.includes('bônus')||t.includes('bonus')||t.includes('transferên')||t.includes('clube')||t.includes('compra'));
-            const hasActionRss = t.includes('bonificação')||t.includes('bonificad')||t.includes('transferência de ponto')||t.includes('clube livelo')||t.includes('clube smiles');
-            if(!((hasProgRss && (t.includes('bônus')||t.includes('bonus')||t.includes('transferên')||t.includes('clube')||t.includes('desconto')||t.includes('compra')))||hasMilesRss||hasActionRss)) return;
+            if((t.includes('últimas horas')||t.includes('último dia')||t.includes('últimos dias')) && daysSinceRss !== null && daysSinceRss > 2) return;
+            // Skip promos older than 7 days
+            if(daysSinceRss !== null && daysSinceRss > 7) return;
+            // Must be about miles programs
+            const hasProgRss = t.includes('smiles')||t.includes('livelo')||t.includes('latam')||t.includes('tudoazul')||t.includes('tudo azul')||t.includes('azul')||t.includes('esfera')||t.includes('accor')||t.includes('c6 bank')||t.includes('átomos')||t.includes('atomos');
+            const hasMilesRss = (t.includes('milha')||t.includes('ponto')||t.includes('milheiro')) && (t.includes('bônus')||t.includes('bonus')||t.includes('transferên')||t.includes('clube')||t.includes('compra')||t.includes('desconto')||t.includes('promo'));
+            const hasActionRss = t.includes('bonificação')||t.includes('bonificad')||t.includes('transferência de ponto')||t.includes('clube livelo')||t.includes('clube smiles')||t.includes('clube latam');
+            const hasPromoRss = hasProgRss && (t.includes('bônus')||t.includes('bonus')||t.includes('transferên')||t.includes('clube')||t.includes('desconto')||t.includes('compra')||t.includes('promo')||t.includes('ofere'));
+            if(!(hasPromoRss||hasMilesRss||hasActionRss)) return;
             // Exclude non-miles content
-            if(t.includes('cupom')||t.includes('passagen')||t.includes('hotel')||t.includes('resort')||t.includes('cruzeiro')||t.includes('sala vip')||t.includes('cartão de crédito')||t.includes('ranking')||t.includes('status')||t.includes('review')) return;
+            if(t.includes('cupom')||t.includes('passagen')||t.includes('hotel barato')||t.includes('resort')||t.includes('cruzeiro')||t.includes('ranking')||t.includes('review')) return;
               const bonus = (item.title||'').match(/(\d+[\.,]?\d*)\s*%/);
               promos.push({
                 title: item.title,
