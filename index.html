@@ -3497,11 +3497,11 @@ function renderEditModal(tx, id) {
     </div>
     <div class="form-grid">
       <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="f-edit-date" value="${dateVal}"></div>
-      <div class="form-group"><label class="form-label">Milhas</label><input type="number" class="form-input" id="f-edit-miles" value="${milesVal}" oninput="updateEditCpk();renderEditModal(state.transactions.find(t=>t.id===${id}),${id})"></div>
+      <div class="form-group"><label class="form-label">Milhas</label><input type="number" class="form-input" id="f-edit-miles" value="${milesVal}" oninput="updateEditCpk()"></div>
     </div>
     ${!isTransfer&&editingType!=='uso'?`
     <div class="form-grid">
-      <div class="form-group"><label class="form-label">${costLabel}</label><input type="number" class="form-input" id="f-edit-cost" value="${costVal}" oninput="updateEditCpk();renderEditModal(state.transactions.find(t=>t.id===${id}),${id})"></div>
+      <div class="form-group"><label class="form-label">${costLabel}</label><input type="number" class="form-input" id="f-edit-cost" value="${costVal}" oninput="updateEditCpk()"></div>
       <div class="form-group"><label class="form-label">R$/Milheiro</label><div class="cost-display mono" id="f-edit-cpk" style="color:#f59e0b">${milesVal>0&&costVal>0?'R$ '+((costVal/milesVal)*1000).toFixed(2):'—'}</div></div>
     </div>`:''}
     ${editingType==='uso'?`<input type="hidden" id="f-edit-cost" value="${costVal}">`:''}
