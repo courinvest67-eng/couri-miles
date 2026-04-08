@@ -952,7 +952,7 @@ function renderHistory() {
     return `<tr>
       <td class="mono" style="font-size:11px;color:var(--text-secondary)">${fDate(tx.date)}</td>
       <td><span style="display:inline-flex;align-items:center;gap:4px">${logoHTML(prog,20)}<span style="font-size:11px">${prog.name}</span></span></td>
-      <td><span class="badge" style="background:${TYPE_COLORS[tx.type]}">${TYPE_LABELS[tx.type]}</span></td>
+      <td><span class="badge" style="background:${TYPE_COLORS[tx.type]}">${TYPE_LABELS[tx.type]}</span>${tx.type==='compra'?(tx.isOrganic?'<span style="display:inline-block;margin-left:3px;padding:1px 5px;border-radius:50px;font-size:8px;font-weight:600;background:#10b98118;color:#10b981;border:1px solid #10b98133">grátis</span>':'<span style="display:inline-block;margin-left:3px;padding:1px 5px;border-radius:50px;font-size:8px;font-weight:600;background:#f59e0b18;color:#f59e0b;border:1px solid #f59e0b33">pago</span>'):''}</td>
       <td class="mono" style="font-weight:700">${fMiles(tx.miles)}</td>
       <td class="mono" style="color:${valCol}">${val}${discountBadge}${vendaBadge}</td>
       <td class="mono" style="font-size:11px;color:#f5a623">${tx.costPerK>0?'R$'+tx.costPerK.toFixed(2):'—'}</td>
@@ -2336,6 +2336,33 @@ function renderModal() {
     </div>
     <input type="hidden" id="f-cost-uso" value="0">
 
+    <div id="acumulo-origin-section" style="display:${formType==='compra'?'block':'none'};margin-bottom:14px">
+      <label class="form-label">Origem do Acúmulo</label>
+      <select class="form-input" id="f-acumulo-origin" onchange="onAcumuloOriginChange()">
+        <optgroup label="💰 Pago (com custo)">
+          <option value="compra_direta">💳 Compra direta de milhas/pontos</option>
+          <option value="clube">🔄 Clube / Assinatura mensal</option>
+          <option value="turbo">⚡ Turbo Livelo / Acelerador</option>
+        </optgroup>
+        <optgroup label="🎁 Orgânico (grátis)">
+          <option value="cartao">💎 Cartão de crédito (pontos)</option>
+          <option value="voo">✈️ Acúmulo por voo</option>
+          <option value="bonus">🎁 Bônus / Promoção</option>
+          <option value="parceiros">🛒 Parceiros (Mercado Livre, Shopping, Amazon...)</option>
+          <option value="cashback">💰 Cashback / Programa parceiro</option>
+        </optgroup>
+        <option value="outro">📌 Outro</option>
+      </select>
+    </div>
+
+    <div id="club-plan-section" style="display:none;margin-bottom:14px">
+      <label class="form-label">Plano do Clube</label>
+      <select class="form-input" id="f-club-plan" onchange="onClubPlanSelect()">
+        <option value="">Selecione o plano...</option>
+      </select>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Selecione o plano para preencher milhas, custo e descrição automaticamente</div>
+    </div>
+
     <div id="uso-type-section" style="display:${formType==='uso'?'block':'none'};margin-bottom:14px">
       <label class="form-label">Tipo de Utilização</label>
       <select class="form-input" id="f-uso-type" onchange="onUsoTypeChange()">
@@ -2651,6 +2678,134 @@ function onUsoTypeChange() {
     descEl.value = autoDesc;
     descEl.setAttribute('data-auto', autoDesc);
   }
+}
+
+// Organic origins (no cost) vs paid origins
+const ORGANIC_ORIGINS = ['cartao','voo','bonus','cashback','parceiros'];
+const PAID_ORIGINS = ['compra_direta','clube','turbo'];
+
+const ORIGIN_LABELS = {
+  compra_direta: '💳 Compra direta',
+  clube: '🔄 Clube/Assinatura',
+  turbo: '⚡ Turbo/Acelerador',
+  cartao: '💎 Cartão de crédito',
+  voo: '✈️ Voo',
+  bonus: '🎁 Bônus/Promoção',
+  parceiros: '🛒 Parceiros',
+  cashback: '💰 Cashback/Parceiro',
+  outro: '📌 Outro'
+};
+
+// Club plans with approximate monthly costs and points
+const CLUB_PLANS = {
+  livelo: [
+    { name:'Clube Mini 500', pts:500, cost:12.90 },
+    { name:'Clube Classic 1.000', pts:1000, cost:24.90 },
+    { name:'Clube Special 2.000', pts:2000, cost:44.90 },
+    { name:'Clube Plus 5.000', pts:5000, cost:99.90 },
+    { name:'Clube Super 7.000', pts:7000, cost:139.90 },
+    { name:'Clube Mega 12.000', pts:12000, cost:474.90 },
+    { name:'Clube Top 20.000', pts:20000, cost:789.90 },
+    { name:'Turbo Livelo 10x', pts:0, cost:0, isTurbo:true },
+  ],
+  latampass: [
+    { name:'Clube LATAM Pass 1.000', pts:1000, cost:34.90 },
+    { name:'Clube LATAM Pass 3.000', pts:3000, cost:89.90 },
+    { name:'Clube LATAM Pass 5.000 + Acelere', pts:5000, cost:109.90 },
+    { name:'Clube LATAM Pass 10.000', pts:10000, cost:299.90 },
+  ],
+  smiles: [
+    { name:'Clube Smiles 1.000', pts:1000, cost:29.90 },
+    { name:'Clube Smiles 3.000', pts:3000, cost:79.90 },
+    { name:'Clube Smiles 5.000', pts:5000, cost:129.90 },
+    { name:'Clube Smiles 10.000', pts:10000, cost:239.90 },
+    { name:'Clube Smiles 15.000', pts:15000, cost:349.90 },
+  ],
+  tudoazul: [
+    { name:'Clube TudoAzul 1.000', pts:1000, cost:29.90 },
+    { name:'Clube TudoAzul 3.000', pts:3000, cost:79.90 },
+    { name:'Clube TudoAzul 5.000', pts:5000, cost:119.90 },
+    { name:'Clube TudoAzul 10.000', pts:10000, cost:219.90 },
+  ],
+};
+
+function onAcumuloOriginChange() {
+  const origin = document.getElementById('f-acumulo-origin')?.value;
+  const costRow = document.getElementById('cost-cpk-row');
+  const costInput = document.getElementById('f-cost');
+  const milesInput = document.getElementById('f-miles');
+  const clubSection = document.getElementById('club-plan-section');
+  if(!origin) return;
+  
+  // Show/hide club plan selector
+  if(clubSection) {
+    if(origin === 'clube' || origin === 'turbo') {
+      clubSection.style.display = 'block';
+      updateClubPlans();
+    } else {
+      clubSection.style.display = 'none';
+    }
+  }
+  
+  if(ORGANIC_ORIGINS.includes(origin)) {
+    if(costRow) costRow.style.display = 'none';
+    if(costInput) costInput.value = '0';
+  } else {
+    if(costRow) costRow.style.display = '';
+    if(costInput && costInput.value === '0') costInput.value = '';
+  }
+  updateCostPerK();
+  
+  const descEl = document.getElementById('f-desc');
+  if(descEl) {
+    const placeholders = {
+      compra_direta: 'Ex: Compra 50K Livelo promoção 10x',
+      clube: 'Preenchido automaticamente pelo plano',
+      turbo: 'Ex: Turbo Livelo 10x abril',
+      cartao: 'Ex: Pontos cartão Itaú março',
+      voo: 'Ex: Voo GRU→GIG ida e volta',
+      bonus: 'Ex: Bônus transferência Livelo 30%',
+      parceiros: 'Ex: Compra Mercado Livre 5.000 pts',
+      cashback: 'Ex: Cashback Méliuz',
+      outro: 'Ex: Promoção especial',
+    };
+    descEl.placeholder = placeholders[origin] || 'Descrição';
+  }
+}
+
+function updateClubPlans() {
+  const progId = document.getElementById('f-program')?.value;
+  const selectEl = document.getElementById('f-club-plan');
+  if(!selectEl) return;
+  
+  const plans = CLUB_PLANS[progId] || [];
+  if(plans.length === 0) {
+    selectEl.innerHTML = '<option value="">Nenhum clube disponível para este programa</option>';
+    return;
+  }
+  
+  selectEl.innerHTML = '<option value="">Selecione o plano...</option>' + 
+    plans.map((p,i) => `<option value="${i}">${p.name} — ${p.pts>0?p.pts+' pts/mês':'variável'} — R$ ${p.cost>0?p.cost.toFixed(2).replace('.',','):'variável'}/mês</option>`).join('');
+}
+
+function onClubPlanSelect() {
+  const progId = document.getElementById('f-program')?.value;
+  const planIdx = document.getElementById('f-club-plan')?.value;
+  if(planIdx === '' || planIdx === undefined) return;
+  
+  const plans = CLUB_PLANS[progId] || [];
+  const plan = plans[parseInt(planIdx)];
+  if(!plan) return;
+  
+  const costInput = document.getElementById('f-cost');
+  const milesInput = document.getElementById('f-miles');
+  const descInput = document.getElementById('f-desc');
+  
+  if(plan.pts > 0 && milesInput) milesInput.value = plan.pts;
+  if(plan.cost > 0 && costInput) costInput.value = plan.cost.toFixed(2);
+  if(descInput) descInput.value = plan.name;
+  
+  updateCostPerK();
 }
 
 function updateCostPerK() {
@@ -3166,10 +3321,8 @@ function submitForm() {
     const acqUso = getProgAcquisition(program);
     tx.usoCostTotal = parseFloat((acqUso.avgCostPerMile * miles).toFixed(2));
     tx.usoCostPerK = acqUso.avgCostPerK;
-    // If savedValue is 0 but we have cost data, auto-fill
     if(tx.savedValue===0) {
       if(program === 'allaccor' && miles > 0) {
-        // For ALL Accor, use the market value in BRL (euros * exchange rate)
         const mv = getMarketVal('allaccor');
         const euroPerK = mv.currency==='EUR' ? mv.perK : 20;
         const eurosFromMiles = (miles / 1000) * euroPerK;
@@ -3178,6 +3331,15 @@ function submitForm() {
       } else if(tx.usoCostTotal>0) {
         tx.savedValue = tx.usoCostTotal;
       }
+    }
+  }
+
+  // Store acumulo origin (paid vs organic)
+  if(formType==='compra') {
+    const originEl = document.getElementById('f-acumulo-origin');
+    if(originEl) {
+      tx.acumuloOrigin = originEl.value;
+      tx.isOrganic = ORGANIC_ORIGINS.includes(originEl.value);
     }
   }
 
@@ -3532,7 +3694,29 @@ function addImportedTxSmart(row, originProgId, type, destProgId, bonusPct) {
       transferFrom: originProgId, transferLinkedMiles: milesOut, transferredCost, imported: true,
     });
   } else {
-    state.transactions.push({
+    const desc = (row.desc || 'Importado').toLowerCase();
+    const cost = type === 'uso' ? 0 : (row.value || 0);
+    // Auto-detect organic vs paid for compra type
+    let isOrganic = false;
+    let acumuloOrigin = '';
+    if(type === 'compra') {
+      if(cost === 0 || cost <= 0) {
+        isOrganic = true;
+        if(desc.includes('cartão')||desc.includes('cartao')||desc.includes('cc')||desc.includes('pontos livelo')||desc.includes('livelo cc')) acumuloOrigin = 'cartao';
+        else if(desc.includes('voo')||desc.includes('vôo')||desc.includes('flight')||desc.includes('são paulo')||desc.includes('buenos')||desc.includes('curitiba')||desc.includes('vitória')) acumuloOrigin = 'voo';
+        else if(desc.includes('bonus')||desc.includes('bônus')||desc.includes('bonificac')||desc.includes('accumulation bonus')||desc.includes('promo')) acumuloOrigin = 'bonus';
+        else if(desc.includes('mercado livre')||desc.includes('amazon')||desc.includes('shopping')||desc.includes('parceiro')||desc.includes('travel')||desc.includes('booking')) acumuloOrigin = 'parceiros';
+        else if(desc.includes('cashback')||desc.includes('premmia')||desc.includes('méliuz')||desc.includes('meliuz')) acumuloOrigin = 'cashback';
+        else acumuloOrigin = 'bonus';
+      } else {
+        isOrganic = false;
+        if(desc.includes('turbo')||desc.includes('acelerador')||desc.includes('acelere')) acumuloOrigin = 'turbo';
+        else if(desc.includes('clube')||desc.includes('assinatura')) acumuloOrigin = 'clube';
+        else if(desc.includes('purchase')||desc.includes('compra')||desc.includes('miles/points')) acumuloOrigin = 'compra_direta';
+        else acumuloOrigin = 'compra_direta';
+      }
+    }
+    const tx = {
       id: baseId, date: row.date || new Date().toISOString().split('T')[0],
       program: originProgId, type: type,
       miles: row.miles || 0,
@@ -3541,7 +3725,12 @@ function addImportedTxSmart(row, originProgId, type, destProgId, bonusPct) {
       description: row.desc || 'Importado',
       costPerK: row.miles > 0 && row.value > 0 ? (row.value / row.miles) * 1000 : 0,
       imported: true,
-    });
+    };
+    if(type === 'compra') {
+      tx.isOrganic = isOrganic;
+      tx.acumuloOrigin = acumuloOrigin;
+    }
+    state.transactions.push(tx);
   }
 }
 
