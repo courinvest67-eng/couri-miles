@@ -903,7 +903,7 @@ function renderPrograms(m) {
         <div class="mono" style="font-size:18px;font-weight:800;color:#8b5cf6">${fCur(getPortfolioValue(p.id))}</div>
       </div>
       ${sparkSVG(sparkData,p.accent)}
-      ${(p.id==='latampass'||p.id==='smiles'||p.id==='tudoazul') && bal>0 ? `
+      ${(p.id==='latampass'||p.id==='smiles'||p.id==='tudoazul') && pm.balance>0 ? `
       <a href="https://www.maxmilhas.com.br/vender-milhas" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;margin-top:8px;border-radius:10px;background:linear-gradient(135deg,#22c99715,#10b98110);border:1px solid #22c99733;color:#22c997;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit">
         💰 Vender milhas ${p.name} na MaxMilhas
       </a>` : ''}
