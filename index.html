@@ -395,7 +395,8 @@
       <p id="header-user-info">Gestão inteligente de milhas aéreas</p>
     </div>
     <div class="btn-group">
-      <button class="pill pill-green" onclick="syncAll()">↻ Sincronizar</button>
+      <button class="pill pill-green" onclick="document.getElementById('header-import-input').click()">📂 Importar</button>
+      <input type="file" id="header-import-input" accept=".pdf,.xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
       <button class="pill pill-purple" onclick="openModal()">+ Lançar</button>
       <button class="pill" style="background:#334155" onclick="authLogout()">Sair</button>
     </div>
