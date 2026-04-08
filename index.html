@@ -669,7 +669,10 @@ function getMetrics() {
   const totalMilesBought = txs.filter(t=>t.type==='compra'&&t.cost>0).reduce((a,t)=>a+t.miles,0);
   const avgCostPerK = totalMilesBought>0 ? (totalSpent/totalMilesBought)*1000 : 0;
   const totalRevenue = txs.filter(t=>t.type==='venda').reduce((a,t)=>a+t.cost,0);
-  const totalSaved = txs.filter(t=>t.type==='uso'&&t.savedValue).reduce((a,t)=>a+t.savedValue,0);
+  const totalSaved = txs.filter(t=>t.type==='uso'&&t.savedValue).reduce((a,t)=>{
+    const economy = t.savedValue - (t.usoCostTotal||0);
+    return a + (economy > 0 ? economy : 0);
+  },0);
   const totalProfit = totalRevenue + totalSaved - totalSpent;
   const profitMargin = totalSpent>0 ? ((totalRevenue+totalSaved-totalSpent)/totalSpent)*100 : 0;
 
@@ -678,7 +681,10 @@ function getMetrics() {
     const acq = getProgAcquisition(p.id);
     const ptxs = txs.filter(t=>t.program===p.id);
     const revenue = ptxs.filter(t=>t.type==='venda').reduce((a,t)=>a+t.cost,0);
-    const saved = ptxs.filter(t=>t.type==='uso'&&t.savedValue).reduce((a,t)=>a+t.savedValue,0);
+    const saved = ptxs.filter(t=>t.type==='uso'&&t.savedValue).reduce((a,t)=>{
+      const economy = t.savedValue - (t.usoCostTotal||0);
+      return a + (economy > 0 ? economy : 0);
+    },0);
     const totalAcquired = ptxs.filter(t=>t.type==='compra').reduce((a,t)=>a+t.miles,0)
       + ptxs.filter(t=>t.type==='transferencia'&&t.description.startsWith('↙')).reduce((a,t)=>a+t.miles,0);
     byProgram[p.id] = {
@@ -1690,7 +1696,10 @@ function calcReportMetrics(txs) {
   const totalSold = txs.filter(t=>t.type==='venda').reduce((a,t)=>a+t.miles,0);
   const totalRevenue = txs.filter(t=>t.type==='venda').reduce((a,t)=>a+t.cost,0);
   const totalRedeemed = txs.filter(t=>t.type==='uso').reduce((a,t)=>a+t.miles,0);
-  const totalSaved = txs.filter(t=>t.type==='uso'&&t.savedValue).reduce((a,t)=>a+t.savedValue,0);
+  const totalSaved = txs.filter(t=>t.type==='uso'&&t.savedValue).reduce((a,t)=>{
+    const economy = t.savedValue - (t.usoCostTotal||0);
+    return a + (economy > 0 ? economy : 0);
+  },0);
   const totalTransferred = txs.filter(t=>t.type==='transferencia').reduce((a,t)=>a+t.miles,0);
   const avgCostPerK = totalBought>0?(totalSpent/totalBought)*1000:0;
   const avgSellPerK = totalSold>0?(totalRevenue/totalSold)*1000:0;
@@ -1705,7 +1714,10 @@ function calcReportMetrics(txs) {
     const bo = acq.totalMiles;
     const sp = acq.totalSpent;
     const re = pt.filter(t=>t.type==='venda').reduce((a,t)=>a+t.cost,0);
-    const sv = pt.filter(t=>t.type==='uso'&&t.savedValue).reduce((a,t)=>a+t.savedValue,0);
+    const sv = pt.filter(t=>t.type==='uso'&&t.savedValue).reduce((a,t)=>{
+      const economy = t.savedValue - (t.usoCostTotal||0);
+      return a + (economy > 0 ? economy : 0);
+    },0);
     const sm = pt.filter(t=>t.type==='venda').reduce((a,t)=>a+t.miles,0);
     const rm = pt.filter(t=>t.type==='uso').reduce((a,t)=>a+t.miles,0);
     byProgram[p.id] = {
