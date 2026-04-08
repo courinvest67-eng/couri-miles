@@ -3513,6 +3513,7 @@ function editTx(id) {
   if(!tx) return;
   editingTxId = id;
   editingType = tx.type;
+  editingFreshOpen = true;
 
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.remove('hidden');
@@ -3520,9 +3521,11 @@ function editTx(id) {
 }
 
 let editingType = 'compra';
+let editingFreshOpen = true;
 
 function setEditType(type) {
   editingType = type;
+  editingFreshOpen = false;
   const tx = state.transactions.find(t=>t.id===editingTxId);
   if(tx) renderEditModal(tx, editingTxId);
 }
@@ -3536,11 +3539,12 @@ function renderEditModal(tx, id) {
   }).join('');
 
   const costLabel = editingType==='venda'?'Valor Recebido (R$)':editingType==='uso'?'Valor Economizado (R$)':'Custo (R$)';
-  const costVal = document.getElementById('f-edit-cost')?.value ?? (tx.type==='uso'?(tx.savedValue||0):tx.cost);
-  const milesVal = document.getElementById('f-edit-miles')?.value ?? tx.miles;
-  const dateVal = document.getElementById('f-edit-date')?.value ?? tx.date;
-  const descVal = document.getElementById('f-edit-desc')?.value ?? tx.description;
-  const progVal = document.getElementById('f-edit-program')?.value ?? tx.program;
+  const costVal = editingFreshOpen ? (tx.type==='uso'?(tx.savedValue||0):tx.cost) : (document.getElementById('f-edit-cost')?.value ?? (tx.type==='uso'?(tx.savedValue||0):tx.cost));
+  const milesVal = editingFreshOpen ? tx.miles : (document.getElementById('f-edit-miles')?.value ?? tx.miles);
+  const dateVal = editingFreshOpen ? tx.date : (document.getElementById('f-edit-date')?.value ?? tx.date);
+  const descVal = editingFreshOpen ? tx.description : (document.getElementById('f-edit-desc')?.value ?? tx.description);
+  const progVal = editingFreshOpen ? tx.program : (document.getElementById('f-edit-program')?.value ?? tx.program);
+  if(editingFreshOpen) editingFreshOpen = false;
 
   // Calc for venda profit preview
   const acq = getProgAcquisition(progVal);
