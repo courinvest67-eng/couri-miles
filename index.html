@@ -4254,6 +4254,17 @@ async function showPromoAlert() {
         // Try to extract date from sibling elements
         const parent = a.closest('li') || a.parentElement;
         const dateText = parent ? (parent.textContent||'').match(/(\d{2}\/\d{2}\/\d{4})/)?.[0] : '';
+        // Parse date and check if expired
+        let parsedDate = null;
+        if(dateText) {
+          const parts = dateText.split('/');
+          if(parts.length===3) parsedDate = new Date(parts[2]+'-'+parts[1]+'-'+parts[0]+'T12:00:00');
+        }
+        const daysSince = parsedDate ? Math.floor((now - parsedDate) / (24*60*60*1000)) : null;
+        // Skip "últimas horas" / "último dia" promos older than 2 days (already expired)
+        if((lower.includes('últimas horas')||lower.includes('último dia')||lower.includes('últimos dias')) && daysSince !== null && daysSince > 2) return;
+        // Skip any promo older than 5 days
+        if(daysSince !== null && daysSince > 5) return;
         promos.push({
           title: title.length>90 ? title.substring(0,90)+'…' : title,
           link: href.startsWith('http') ? href : 'https://www.melhoresdestinos.com.br'+href,
@@ -4286,6 +4297,11 @@ async function showPromoAlert() {
             if(pubDate && pubDate < fourteenDaysAgo) return;
             const t = (item.title||'').toLowerCase();
             if(t.includes('vencid')||t.includes('encerrad')||t.includes('expirou')||t.includes('acabou')||t.includes('encerrou')) return;
+            // Skip urgency promos older than 2 days
+            const daysSinceRss = pubDate ? Math.floor((now - pubDate) / (24*60*60*1000)) : null;
+            if((t.includes('últimas horas')||t.includes('último dia')||t.includes('últimos dias')) && daysSinceRss !== null && daysSinceRss > 2) return;
+            // Skip any promo older than 5 days
+            if(daysSinceRss !== null && daysSinceRss > 5) return;
             if(t.includes('bônus')||t.includes('bonus')||t.includes('bonificad')||t.includes('desconto')||t.includes('imperdível')||t.includes('último dia')||t.includes('milha')||t.includes('ponto')||t.includes('transf')||t.includes('smiles')||t.includes('livelo')||t.includes('latam')||t.includes('azul')||t.includes('esfera')||t.includes('clube')||t.includes('accor')) {
               const bonus = (item.title||'').match(/(\d+[\.,]?\d*)\s*%/);
               promos.push({
