@@ -977,12 +977,12 @@ function renderHistory() {
   return `<div style="display:flex;flex-direction:column;gap:12px">
     <div style="display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <div class="filter-row" style="margin:0">\${filters}</div>
+        <div class="filter-row" style="margin:0">${filters}</div>
         <div style="display:flex;gap:6px;align-items:center">
           <div class="search-bar" style="min-width:160px">
             <span style="color:var(--text-dim);font-size:14px">🔍</span>
-            <input type="text" placeholder="Buscar..." value="\${historySearch}" oninput="setHistorySearch(this.value)">
-            \${historySearch?'<button onclick="historySearch=\\'\\';render()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px">✕</button>':''}
+            <input type="text" placeholder="Buscar..." value="${historySearch}" oninput="setHistorySearch(this.value)">
+            ${historySearch?'<button onclick="historySearch=\'\';render()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px">✕</button>':''}
           </div>
           <button class="pill" style="background:#3b82f6" onclick="document.getElementById('import-file-input').click()">📂 Importar</button>
           <input type="file" id="import-file-input" accept=".pdf,.xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
@@ -990,20 +990,20 @@ function renderHistory() {
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <select class="form-input" style="width:auto;padding:5px 8px;font-size:10px" onchange="setHistoryTypeFilter(this.value)">
-          <option value="" \${!historyTypeFilter?'selected':''}>Todos os tipos</option>
-          \${Object.entries(TYPE_LABELS).map(([k,v])=>\`<option value="\${k}" \${historyTypeFilter===k?'selected':''}>\${v}</option>\`).join('')}
+          <option value="" ${!historyTypeFilter?'selected':''}>Todos os tipos</option>
+          ${Object.entries(TYPE_LABELS).map(([k,v])=>`<option value="${k}" ${historyTypeFilter===k?'selected':''}>${v}</option>`).join('')}
         </select>
-        <input type="date" class="form-input" style="width:auto;padding:5px 8px;font-size:10px" value="\${historyDateFrom}" onchange="setHistoryDateFrom(this.value)" placeholder="De">
+        <input type="date" class="form-input" style="width:auto;padding:5px 8px;font-size:10px" value="${historyDateFrom}" onchange="setHistoryDateFrom(this.value)" placeholder="De">
         <span style="color:var(--text-dim);font-size:10px">a</span>
-        <input type="date" class="form-input" style="width:auto;padding:5px 8px;font-size:10px" value="\${historyDateTo}" onchange="setHistoryDateTo(this.value)" placeholder="Até">
+        <input type="date" class="form-input" style="width:auto;padding:5px 8px;font-size:10px" value="${historyDateTo}" onchange="setHistoryDateTo(this.value)" placeholder="Até">
         <select class="form-input" style="width:auto;padding:5px 8px;font-size:10px" onchange="setHistorySort(this.value)">
-          <option value="date-desc" \${historySortBy==='date-desc'?'selected':''}>Recentes</option>
-          <option value="date-asc" \${historySortBy==='date-asc'?'selected':''}>Antigos</option>
-          <option value="miles-desc" \${historySortBy==='miles-desc'?'selected':''}>+Milhas</option>
-          <option value="value-desc" \${historySortBy==='value-desc'?'selected':''}>+Valor</option>
+          <option value="date-desc" ${historySortBy==='date-desc'?'selected':''}>Recentes</option>
+          <option value="date-asc" ${historySortBy==='date-asc'?'selected':''}>Antigos</option>
+          <option value="miles-desc" ${historySortBy==='miles-desc'?'selected':''}>+Milhas</option>
+          <option value="value-desc" ${historySortBy==='value-desc'?'selected':''}>+Valor</option>
         </select>
-        \${(historySearch||historyTypeFilter||historyDateFrom||historyDateTo||historySortBy!=='date-desc')?'<button onclick="clearHistoryFilters()" style="background:none;border:1px solid #f0465a44;border-radius:6px;color:#f0465a;cursor:pointer;padding:3px 8px;font-size:9px;font-family:inherit">✕ Limpar</button>':''}
-        <span style="font-size:9px;color:var(--text-dim);margin-left:auto">\${filteredCount}/\${totalCount}</span>
+        ${(historySearch||historyTypeFilter||historyDateFrom||historyDateTo||historySortBy!=='date-desc')?'<button onclick="clearHistoryFilters()" style="background:none;border:1px solid #f0465a44;border-radius:6px;color:#f0465a;cursor:pointer;padding:3px 8px;font-size:9px;font-family:inherit">✕ Limpar</button>':''}
+        <span style="font-size:9px;color:var(--text-dim);margin-left:auto">${filteredCount}/${totalCount}</span>
       </div>
     </div>
     <div id="import-preview-area"></div>
