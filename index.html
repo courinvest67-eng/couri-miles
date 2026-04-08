@@ -3678,6 +3678,21 @@ function saveEdit() {
     if(editingType==='uso') { tx.savedValue=costVal; tx.cost=0; }
     else { tx.cost=costVal; tx.savedValue=0; }
     tx.costPerK = tx.miles>0&&costVal>0?(costVal/tx.miles)*1000:0;
+
+    // Update organic/paid status for compra type
+    if(editingType==='compra') {
+      if(costVal > 0) {
+        tx.isOrganic = false;
+        if(!tx.acumuloOrigin || ORGANIC_ORIGINS.includes(tx.acumuloOrigin)) {
+          tx.acumuloOrigin = 'compra_direta';
+        }
+      } else {
+        tx.isOrganic = true;
+        if(!tx.acumuloOrigin || PAID_ORIGINS.includes(tx.acumuloOrigin)) {
+          tx.acumuloOrigin = 'bonus';
+        }
+      }
+    }
   }
 
   recalcBalances();
