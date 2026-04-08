@@ -3750,18 +3750,24 @@ function confirmImport() {
     else { normalRows.push(rowCopy); }
     count++;
   });
+  
+  // Save current balances before import
+  var savedBalances = JSON.parse(JSON.stringify(state.balances));
+  
   normalRows.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
   transferRows.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
   normalRows.forEach(function(row) { addImportedTxSmart(row, prog, row.type, row.destProgId, row.bonusPct); });
-  recalcBalances();
   transferRows.forEach(function(row) { addImportedTxSmart(row, prog, row.type, row.destProgId, row.bonusPct); });
-  recalcBalances();
+  
+  // Restore saved balances (don't recalculate from scratch)
+  state.balances = savedBalances;
+  
   state.transactions.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
   saveState();
   importedRows = [];
   var area = document.getElementById('import-preview-area');
-  if(area) area.innerHTML = '<div class="card" style="border-left:3px solid #10b981;padding:12px"><span style="color:#10b981;font-weight:600">' + count + ' movimentacoes importadas com sucesso!</span></div>';
-  setTimeout(function() { if(area) area.innerHTML = ''; render(); }, 2500);
+  if(area) area.innerHTML = '<div class="card" style="border-left:3px solid #10b981;padding:12px"><span style="color:#10b981;font-weight:600">' + count + ' movimentações importadas com sucesso!</span><br><span style="font-size:11px;color:var(--text-muted)">Os saldos foram preservados. Atualize manualmente na aba Contas se necessário.</span></div>';
+  setTimeout(function() { if(area) area.innerHTML = ''; render(); }, 3500);
 }
 
 
