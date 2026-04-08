@@ -1741,7 +1741,10 @@ function calcReportMetrics(txs) {
     };
   });
 
-  return { totalBought,totalSpent,totalSold,totalRevenue,totalRedeemed,totalSaved,
+  // Total current balance (saldo atual)
+  const totalBalance = Object.values(state.balances).reduce((a,b)=>a+b,0);
+
+  return { totalBought,totalMilesAcquired,totalBalance,totalSpent,totalSold,totalRevenue,totalRedeemed,totalSaved,
     totalTransferred,avgCostPerK,avgSellPerK,avgSavePerK,profit,roi,byProgram,
     txCount:txs.length };
 }
@@ -1763,10 +1766,11 @@ function exportReportXLSX(txs) {
     [''],
     ['INDICADORES GERAIS'],
     ['','Milhas','Valor (R$)','R$/Milheiro'],
-    ['Milhas Acumuladas', r.totalBought, r.totalSpent, r.avgCostPerK],
+    ['Milhas Acumuladas', r.totalMilesAcquired, r.totalSpent, r.avgCostPerK],
     ['Milhas Vendidas', r.totalSold, r.totalRevenue, r.avgSellPerK],
     ['Milhas Resgatadas', r.totalRedeemed, r.totalSaved, r.avgSavePerK],
     ['Milhas Transferidas', r.totalTransferred, '', ''],
+    ['Saldo Atual', r.totalBalance, '', ''],
     [''],
     ['RESULTADO FINANCEIRO'],
     ['Total Investido (Compras)', '', r.totalSpent],
@@ -1801,7 +1805,7 @@ function exportReportXLSX(txs) {
   progData.push([]);
   progData.push(['TOTAIS',
     Object.values(state.balances).reduce((a,b)=>a+b,0),
-    r.totalBought, r.totalSpent, r.avgCostPerK,
+    r.totalMilesAcquired, r.totalSpent, r.avgCostPerK,
     r.totalSold, r.totalRevenue,
     r.totalRedeemed, r.totalSaved,
     r.profit, r.txCount,
@@ -1961,7 +1965,7 @@ function renderReports() {
     <!-- KPIs -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
       ${[
-        {label:"Milhas Acumuladas",val:fMiles(r.totalBought),color:"#3b82f6",icon:"▲"},
+        {label:"Milhas Acumuladas",val:fMiles(r.totalMilesAcquired),color:"#3b82f6",icon:"▲"},
         {label:"Total Investido",val:fCur(r.totalSpent),color:"#ef4444",icon:"▼"},
         {label:"Custo Médio/Milheiro",val:'R$ '+r.avgCostPerK.toFixed(2),color:"#f59e0b",icon:"◆"},
         {label:"Milhas Vendidas",val:fMiles(r.totalSold),color:"#FF9800",icon:"→"},
