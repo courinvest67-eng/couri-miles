@@ -4216,11 +4216,9 @@ async function showPromoAlert() {
   if(window._promoAlertShown) return;
   window._promoAlertShown = true;
 
-  // Fallback - link to page
+  // Fallback - direct links when no active promos found
   const fallbackPromos = [
-    { title:'Confira as promoções ativas de milhas e cartões no Melhores Destinos', link:'https://www.melhoresdestinos.com.br/noticias-milhas-e-cartoes', source:'Melhores Destinos', sourceColor:'#ff6b35', bonus:'', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:true },
-    { title:'Veja as transferências bonificadas ativas nos programas de fidelidade', link:'https://www.melhorescartoes.com.br/c/promocoes-milhas/', source:'Melhores Cartões', sourceColor:'#3b82f6', bonus:'', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:false },
-    { title:'Acompanhe promoções de milhas e pontos em tempo real', link:'https://pontospravoar.com/', source:'Pontos pra Voar', sourceColor:'#f59e0b', bonus:'', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:false },
+    { title:'Veja as promoções de milhas ativas no Melhores Destinos', link:'https://www.melhoresdestinos.com.br/noticias-milhas-e-cartoes', source:'Melhores Destinos', sourceColor:'#ff6b35', bonus:'', date: new Date().toLocaleDateString('pt-BR'), isHot:false, isPriority:true },
   ];
 
   const now = new Date();
@@ -4243,12 +4241,22 @@ async function showPromoAlert() {
         if(!title || title.length < 20 || title.length > 150) return;
         if(seen.has(title.substring(0,40))) return;
         const lower = title.toLowerCase();
-        // Filter: only miles/points/promo related
-        if(!(lower.includes('bônus')||lower.includes('bonus')||lower.includes('bonificad')||lower.includes('desconto')||lower.includes('milha')||lower.includes('ponto')||lower.includes('transf')||lower.includes('smiles')||lower.includes('livelo')||lower.includes('latam')||lower.includes('azul')||lower.includes('esfera')||lower.includes('clube')||lower.includes('accor')||lower.includes('compra')||lower.includes('promo')||lower.includes('imperdível')||lower.includes('último'))) return;
-        // Skip expired
+        
+        // STRICT FILTER: Must be about miles/points programs specifically
+        // Must mention at least one program OR miles-specific action
+        const hasProgram = lower.includes('smiles')||lower.includes('livelo')||lower.includes('latam pass')||lower.includes('tudoazul')||lower.includes('tudo azul')||lower.includes('azul fidelidade')||lower.includes('esfera')||lower.includes('accor')||lower.includes('c6 bank')||lower.includes('átomos')||lower.includes('inter loop');
+        const hasMilesAction = lower.includes('transferência de ponto')||lower.includes('transferir ponto')||lower.includes('bonificação')||lower.includes('bonificad')||lower.includes('bônus na transferência')||lower.includes('bonus na transferência')||lower.includes('clube livelo')||lower.includes('clube smiles')||lower.includes('compra de milha')||lower.includes('compra de ponto')||lower.includes('milhas extra')||lower.includes('pontos extra');
+        const hasMilesKeyword = (lower.includes('milha')||lower.includes('ponto')) && (lower.includes('bônus')||lower.includes('bonus')||lower.includes('transferên')||lower.includes('clube')||lower.includes('compra'));
+        
+        // Must match at least one strict criteria
+        if(!(hasProgram && (lower.includes('bônus')||lower.includes('bonus')||lower.includes('transferên')||lower.includes('clube')||lower.includes('desconto')||lower.includes('compra'))) && !hasMilesAction && !hasMilesKeyword) return;
+        
+        // EXCLUDE: things that are NOT miles promos
+        if(lower.includes('cupom')||lower.includes('passagen')||lower.includes('hotel')||lower.includes('resort')||lower.includes('cruzeiro')||lower.includes('seguro viagem')||lower.includes('sala vip')||lower.includes('cartão de crédito')||lower.includes('ranking')||lower.includes('guia completo')||lower.includes('como funciona')||lower.includes('o que é')||lower.includes('status')||lower.includes('review')||lower.includes('avaliação')) return;
+        
+        // EXCLUDE: expired promos
         if(lower.includes('vencid')||lower.includes('encerrad')||lower.includes('expirou')||lower.includes('acabou')||lower.includes('encerrou')) return;
-        // Skip non-promo content
-        if(lower.includes('ranking')||lower.includes('guia completo')||lower.includes('como funciona')||lower.includes('o que é')) return;
+        
         seen.add(title.substring(0,40));
         const bonus = title.match(/(\d+[\.,]?\d*)\s*%/);
         // Try to extract date from sibling elements
@@ -4261,10 +4269,10 @@ async function showPromoAlert() {
           if(parts.length===3) parsedDate = new Date(parts[2]+'-'+parts[1]+'-'+parts[0]+'T12:00:00');
         }
         const daysSince = parsedDate ? Math.floor((now - parsedDate) / (24*60*60*1000)) : null;
-        // Skip "últimas horas" / "último dia" promos older than 2 days (already expired)
-        if((lower.includes('últimas horas')||lower.includes('último dia')||lower.includes('últimos dias')) && daysSince !== null && daysSince > 2) return;
-        // Skip any promo older than 5 days
-        if(daysSince !== null && daysSince > 5) return;
+        // Skip "últimas horas" / "último dia" promos older than 1 day
+        if((lower.includes('últimas horas')||lower.includes('último dia')||lower.includes('últimos dias')) && daysSince !== null && daysSince > 1) return;
+        // Skip any promo older than 3 days
+        if(daysSince !== null && daysSince > 3) return;
         promos.push({
           title: title.length>90 ? title.substring(0,90)+'…' : title,
           link: href.startsWith('http') ? href : 'https://www.melhoresdestinos.com.br'+href,
@@ -4294,15 +4302,21 @@ async function showPromoAlert() {
           const data = await resp.json();
           if(data.items) data.items.forEach(item => {
             const pubDate = item.pubDate ? new Date(item.pubDate) : null;
-            if(pubDate && pubDate < fourteenDaysAgo) return;
             const t = (item.title||'').toLowerCase();
+            // Skip expired keywords
             if(t.includes('vencid')||t.includes('encerrad')||t.includes('expirou')||t.includes('acabou')||t.includes('encerrou')) return;
-            // Skip urgency promos older than 2 days
+            // Skip urgency promos older than 1 day
             const daysSinceRss = pubDate ? Math.floor((now - pubDate) / (24*60*60*1000)) : null;
-            if((t.includes('últimas horas')||t.includes('último dia')||t.includes('últimos dias')) && daysSinceRss !== null && daysSinceRss > 2) return;
-            // Skip any promo older than 5 days
-            if(daysSinceRss !== null && daysSinceRss > 5) return;
-            if(t.includes('bônus')||t.includes('bonus')||t.includes('bonificad')||t.includes('desconto')||t.includes('imperdível')||t.includes('último dia')||t.includes('milha')||t.includes('ponto')||t.includes('transf')||t.includes('smiles')||t.includes('livelo')||t.includes('latam')||t.includes('azul')||t.includes('esfera')||t.includes('clube')||t.includes('accor')) {
+            if((t.includes('últimas horas')||t.includes('último dia')||t.includes('últimos dias')) && daysSinceRss !== null && daysSinceRss > 1) return;
+            // Skip any promo older than 3 days
+            if(daysSinceRss !== null && daysSinceRss > 3) return;
+            // STRICT: must be about miles programs
+            const hasProgRss = t.includes('smiles')||t.includes('livelo')||t.includes('latam pass')||t.includes('tudoazul')||t.includes('tudo azul')||t.includes('azul fidelidade')||t.includes('esfera')||t.includes('accor')||t.includes('c6 bank')||t.includes('átomos');
+            const hasMilesRss = (t.includes('milha')||t.includes('ponto')) && (t.includes('bônus')||t.includes('bonus')||t.includes('transferên')||t.includes('clube')||t.includes('compra'));
+            const hasActionRss = t.includes('bonificação')||t.includes('bonificad')||t.includes('transferência de ponto')||t.includes('clube livelo')||t.includes('clube smiles');
+            if(!((hasProgRss && (t.includes('bônus')||t.includes('bonus')||t.includes('transferên')||t.includes('clube')||t.includes('desconto')||t.includes('compra')))||hasMilesRss||hasActionRss)) return;
+            // Exclude non-miles content
+            if(t.includes('cupom')||t.includes('passagen')||t.includes('hotel')||t.includes('resort')||t.includes('cruzeiro')||t.includes('sala vip')||t.includes('cartão de crédito')||t.includes('ranking')||t.includes('status')||t.includes('review')) return;
               const bonus = (item.title||'').match(/(\d+[\.,]?\d*)\s*%/);
               promos.push({
                 title: item.title,
@@ -4315,7 +4329,6 @@ async function showPromoAlert() {
                 isHot: t.includes('imperdível')||t.includes('último dia')||(bonus&&parseInt(bonus[1])>=70),
                 isPriority: feed.priority||false,
               });
-            }
           });
         }
       } catch(e) {}
