@@ -1,11 +1,9 @@
-// Couri Mile$ — Service Worker v1.0
-const CACHE_NAME = 'couri-miles-v1';
+// Couri Mile$ — Service Worker v2.1
+const CACHE_NAME = 'couri-miles-v2.1';
 const OFFLINE_URL = '/couri-miles/';
 
-// Core assets to cache for offline use
+// Core assets to cache (NOT index.html - always fetched fresh)
 const PRECACHE_ASSETS = [
-  '/couri-miles/',
-  '/couri-miles/index.html',
   '/couri-miles/manifest.json',
   '/couri-miles/icon-192x192.png',
   '/couri-miles/icon-512x512.png',
@@ -22,19 +20,17 @@ const CDN_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap',
 ];
 
-// Install: precache core assets
+// Install: precache assets and skip waiting immediately
 self.addEventListener('install', event => {
-  console.log('[SW] Installing Couri Mile$ Service Worker v1');
+  console.log('[SW] Installing Couri Mile$ SW v2.1');
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Cache local assets
       const localPromise = cache.addAll(PRECACHE_ASSETS).catch(err => {
-        console.log('[SW] Some local assets failed to cache:', err);
+        console.log('[SW] Local cache partial fail:', err);
       });
-      // Cache CDN assets (best effort)
       const cdnPromise = Promise.allSettled(
-        CDN_ASSETS.map(url => 
-          cache.add(url).catch(err => console.log('[SW] CDN cache skip:', url))
+        CDN_ASSETS.map(url =>
+          cache.add(url).catch(err => console.log('[SW] CDN skip:', url))
         )
       );
       return Promise.all([localPromise, cdnPromise]);
@@ -42,11 +38,11 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate: clean old caches
+// Activate: delete ALL old caches and claim clients immediately
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating Couri Mile$ Service Worker');
+  console.log('[SW] Activating Couri Mile$ SW v2.1');
   event.waitUntil(
-    caches.keys().then(keys => 
+    caches.keys().then(keys =>
       Promise.all(
         keys.filter(key => key !== CACHE_NAME).map(key => {
           console.log('[SW] Deleting old cache:', key);
@@ -62,38 +58,42 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests
+  // Skip non-GET
   if (request.method !== 'GET') return;
 
-  // Skip Firebase/Firestore API calls (always network)
-  if (url.hostname.includes('firestore.googleapis.com') || 
+  // Skip Firebase/API calls — always network
+  if (url.hostname.includes('firestore.googleapis.com') ||
       url.hostname.includes('identitytoolkit.googleapis.com') ||
       url.hostname.includes('securetoken.googleapis.com') ||
-      url.hostname.includes('firebase') && url.pathname.includes('/__/')) {
+      (url.hostname.includes('firebase') && url.pathname.includes('/__/'))) {
     return;
   }
 
-  // Skip external API calls (promos, exchange rates, etc.)
-  if (url.hostname.includes('api.rss2json.com') || 
+  // Skip external APIs
+  if (url.hostname.includes('api.rss2json.com') ||
       url.hostname.includes('allorigins.win') ||
       url.hostname.includes('awesomeapi.com.br') ||
-      url.hostname.includes('api.exchangerate')) {
+      url.hostname.includes('api.exchangerate') ||
+      url.hostname.includes('api.anthropic.com')) {
     return;
   }
 
-  // Strategy: Network first for HTML, Cache first for assets
-  if (request.destination === 'document' || url.pathname.endsWith('.html')) {
-    // Network first for HTML — always try fresh version
+  // HTML / index.html → ALWAYS network first, NO cache on success
+  // This ensures fresh code is always loaded
+  if (request.destination === 'document' ||
+      url.pathname.endsWith('.html') ||
+      url.pathname === '/couri-miles/' ||
+      url.pathname === '/couri-miles') {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' })
         .then(response => {
-          // Cache the fresh version
+          // Store a copy for offline fallback only
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
           return response;
         })
         .catch(() => {
-          // Offline: serve from cache
+          // Offline fallback
           return caches.match(request).then(cached => {
             return cached || caches.match(OFFLINE_URL);
           });
@@ -102,9 +102,9 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache first for static assets (JS, CSS, fonts, images)
-  if (request.destination === 'script' || 
-      request.destination === 'style' || 
+  // Static assets (JS libs, CSS, fonts, images) → cache first
+  if (request.destination === 'script' ||
+      request.destination === 'style' ||
       request.destination === 'font' ||
       request.destination === 'image' ||
       url.pathname.endsWith('.js') ||
@@ -118,16 +118,13 @@ self.addEventListener('fetch', event => {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
           return response;
-        }).catch(() => {
-          // Return empty response for non-critical assets
-          return new Response('', { status: 408, statusText: 'Offline' });
-        });
+        }).catch(() => new Response('', { status: 408 }));
       })
     );
     return;
   }
 
-  // Default: network first with cache fallback
+  // Default: network first
   event.respondWith(
     fetch(request)
       .then(response => {
@@ -141,7 +138,7 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Handle push notifications
+// Push notifications
 self.addEventListener('push', event => {
   const options = {
     body: event.data ? event.data.text() : 'Nova promoção de milhas disponível!',
@@ -156,37 +153,28 @@ self.addEventListener('push', event => {
       { action: 'dismiss', title: 'Depois' }
     ]
   };
-
-  event.waitUntil(
-    self.registration.showNotification('Couri Mile$ ✈️', options)
-  );
+  event.waitUntil(self.registration.showNotification('Couri Mile$ ✈️', options));
 });
 
-// Handle notification click
+// Notification click
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   if (event.action === 'dismiss') return;
-  
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // Focus existing window if open
       for (const client of windowClients) {
-        if (client.url.includes('/couri-miles/') && 'focus' in client) {
-          return client.focus();
-        }
+        if (client.url.includes('/couri-miles/') && 'focus' in client) return client.focus();
       }
-      // Otherwise open new window
       return clients.openWindow(event.notification.data?.url || '/couri-miles/');
     })
   );
 });
 
-// Background sync for offline transactions
+// Background sync
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-transactions') {
-    console.log('[SW] Background sync: syncing transactions');
-    // The app will handle actual sync via Firebase when online
+    console.log('[SW] Background sync: transactions');
   }
 });
 
-console.log('[SW] Couri Mile$ Service Worker loaded');
+console.log('[SW] Couri Mile$ SW v2.1 loaded');
