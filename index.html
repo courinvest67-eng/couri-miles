@@ -4983,15 +4983,22 @@ if(useFirebase) {
     currentUser=user;
     const authScreen=document.getElementById('auth-screen');
     if(user){
-      document.getElementById('auth-loading').style.display='block';
-      document.getElementById('auth-form').style.display='none';
-      const loaded=await loadFromCloud();
-      if(!loaded) state=defaultState();
-      authScreen.style.display='none';
-      document.querySelector('.header').style.display='';
-     document.getElementById('main-content').style.display='';
-      applyUserTheme(user);
-      initApp();
+      try {
+        document.getElementById('auth-loading').style.display='block';
+        document.getElementById('auth-form').style.display='none';
+        const loaded=await loadFromCloud();
+        if(!loaded) state=defaultState();
+        authScreen.style.display='none';
+        document.querySelector('.header').style.display='';
+        document.getElementById('main-content').style.display='';
+        applyUserTheme(user);
+        initApp();
+      } catch(e) {
+        console.error('Auth init error:', e);
+        alert('Erro ao carregar o app: ' + e.message + '\n\nTente limpar o cache do navegador.');
+        document.getElementById('auth-loading').style.display='none';
+        document.getElementById('auth-form').style.display='block';
+      }
     } else {
       authScreen.style.display='flex';
       document.querySelector('.header').style.display='none';
@@ -6096,12 +6103,4 @@ async function sendConsultorMessage() {
 
     if(!aiText) aiText = 'Desculpe, não consegui processar sua pergunta. Tente reformular.';
 
-    consultorHistory.push({ role: 'assistant', content: aiText });
-    incrementConsultorMsg();
-
-  } catch(err) {
-    console.error('Consultor error:', err);
-    consultorHistory.push({ role: 'assistant', content: '⚠️ **Erro ao conectar com o consultor.** ' + (err.message || '') + '\n\nTente novamente em alguns instantes. Se o problema persistir, verifique sua conexão.' });
-  }
-
-  con
+    consultorHistory.push({ role: 'assistant', 
