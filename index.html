@@ -4065,78 +4065,104 @@ function renderAdmin() {
     const balance = u.data?.balances ? Object.values(u.data.balances).reduce((a,b)=>a+b,0) : 0;
     const recurring = u.data?.recurring?.length||0;
     const lastTx = u.data?.transactions?.[0]?.date || '—';
-    const programs = u.data?.balances ? Object.entries(u.data.balances).filter(([k,v])=>v>0).map(([k,v])=>`${k}:${fMiles(v)}`).join(', ') : '—';
+    const lastTxFormatted = lastTx!=='—' ? fDate(lastTx) : '—';
+    const planId = u.data&&u.data._plan?u.data._plan:'free';
+    const planLabel = planId.toUpperCase();
+    const planExpiry = u.data&&u.data._planExpiry ? new Date(u.data._planExpiry).toLocaleDateString('pt-BR') : '';
+    const programs = u.data?.balances ? Object.entries(u.data.balances).filter(([k,v])=>v>0).map(([k,v])=>{
+      const prog=PROGRAMS.find(p=>p.id===k);
+      return prog?prog.name+': '+fMiles(v):k+': '+fMiles(v);
+    }).join(' · ') : 'Nenhum saldo';
 
-    return `<tr style="cursor:pointer" onclick="toggleAdminUserDetail(${i})">
-      <td>
-        <div style="font-size:12px;font-weight:600;color:var(--text-primary)">${u.displayName||'—'}</div>
-        <div style="font-size:10px;color:var(--text-muted)">${u.email||u.uid}</div>
-      </td>
-      <td><span class="plan-badge plan-badge-${u.data&&u.data._plan?u.data._plan:'free'}" style="font-size:9px">${(u.data&&u.data._plan?u.data._plan:'free').toUpperCase()}</span>${u.data&&u.data._planExpiry?'<div style="font-size:8px;color:var(--text-dim);margin-top:2px">até '+new Date(u.data._planExpiry).toLocaleDateString('pt-BR')+'</div>':''}</td>
-      <td class="mono" style="font-size:12px;font-weight:700;color:#f5c518">${fMiles(balance)}</td>
-      <td class="mono" style="font-size:11px">${txCount}</td>
-      <td class="mono" style="font-size:11px">${recurring}</td>
-      <td style="font-size:10px;color:var(--text-muted)">${lastTx}</td>
-      <td>
-        <button onclick="event.stopPropagation();viewAdminUser(${i})" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);cursor:pointer;padding:3px 8px;font-size:10px" title="Ver detalhes">👁</button>
-      </td>
-    </tr>
-    <tr id="admin-detail-${i}" style="display:none">
-      <td colspan="7" style="padding:12px;background:rgba(0,0,0,0.2);border-radius:8px">
-        <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">SALDOS POR PROGRAMA</div>
-        <div style="font-size:11px;color:var(--text-secondary)">${programs||'Nenhum saldo'}</div>
-      </td>
-    </tr>`;
+    return `<div class="card" style="padding:16px;margin-bottom:2px">
+      <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleAdminUserDetail(${i})">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,${planId==='premium'?'#c084fc33':'#1a6fb533'},${planId==='pro'?'#f5c51822':'#0a355822'});display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${planId==='premium'?'👑':planId==='pro'?'⭐':planId==='trial'?'🎁':'👤'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary)">${u.displayName||'—'}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${u.email||u.uid}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <span class="plan-badge plan-badge-${planId}" style="font-size:11px;padding:4px 14px">${planLabel}</span>
+          ${planExpiry?'<div style="font-size:10px;color:var(--text-dim);margin-top:4px">até '+planExpiry+'</div>':''}
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;cursor:pointer" onclick="toggleAdminUserDetail(${i})">
+        <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Saldo</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:#f5c518;margin-top:4px">${fMiles(balance)}</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Movim.</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:#3b82f6;margin-top:4px">${txCount}</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Recorr.</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:#22c997;margin-top:4px">${recurring}</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Última</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-secondary);margin-top:4px">${lastTxFormatted}</div>
+        </div>
+      </div>
+
+      <div id="admin-detail-${i}" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Saldos por Programa</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:2">${programs}</div>
+        <div style="margin-top:12px;text-align:right">
+          <button onclick="event.stopPropagation();viewAdminUser(${i})" style="padding:8px 18px;border-radius:10px;border:none;background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 12px rgba(26,111,181,0.3)">👁 Ver detalhes completos</button>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 
   const totalUsers = adminUsers.length;
   const totalMiles = adminUsers.reduce((a,u) => a + (u.data?.balances ? Object.values(u.data.balances).reduce((s,v)=>s+v,0) : 0), 0);
   const totalTxs = adminUsers.reduce((a,u) => a + (u.data?.transactions?.length||0), 0);
+  const totalPaying = adminUsers.filter(u => u.data&&(u.data._plan==='pro'||u.data._plan==='premium')).length;
 
   return `<div style="display:flex;flex-direction:column;gap:14px">
     <div class="card" style="border-top:3px solid #f5c518">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <div>
-          <div style="font-size:16px;font-weight:800;color:#f5c518">🔑 Painel Administrativo</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Gestão de usuários e dados</div>
+          <div style="font-size:20px;font-weight:800;color:#f5c518">🔑 Painel Administrativo</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:4px">Gestão de usuários e assinaturas</div>
         </div>
-        <button class="pill" style="background:linear-gradient(145deg,#1a6fb5,#0a3558)" onclick="loadAdminUsers()">
+        <button class="pill" style="background:linear-gradient(145deg,#1a6fb5,#0a3558);padding:10px 20px;font-size:13px" onclick="loadAdminUsers()">
           ${adminLoading?'⏳ Carregando...':'↻ Atualizar'}
         </button>
       </div>
 
-      <div class="kpi-grid" style="margin-bottom:16px">
-        <div class="mini-card" style="text-align:center;border-left:3px solid #f5c518">
-          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Total Usuários</div>
-          <div class="mono" style="font-size:22px;font-weight:800;color:#f5c518;margin-top:4px">${totalUsers}</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+        <div class="mini-card" style="text-align:center;border-left:3px solid #f5c518;padding:16px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Usuários</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:#f5c518;margin-top:6px">${totalUsers}</div>
         </div>
-        <div class="mini-card" style="text-align:center;border-left:3px solid #1a6fb5">
-          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Milhas na Plataforma</div>
-          <div class="mono" style="font-size:22px;font-weight:800;color:#1a6fb5;margin-top:4px">${fMiles(totalMiles)}</div>
+        <div class="mini-card" style="text-align:center;border-left:3px solid #22c997;padding:16px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Assinantes</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:#22c997;margin-top:6px">${totalPaying}</div>
         </div>
-        <div class="mini-card" style="text-align:center;border-left:3px solid #22c997">
-          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Total Movimentações</div>
-          <div class="mono" style="font-size:22px;font-weight:800;color:#22c997;margin-top:4px">${totalTxs}</div>
+        <div class="mini-card" style="text-align:center;border-left:3px solid #1a6fb5;padding:16px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Milhas</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:#1a6fb5;margin-top:6px">${fMiles(totalMiles)}</div>
+        </div>
+        <div class="mini-card" style="text-align:center;border-left:3px solid #c084fc;padding:16px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Movimentações</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:#c084fc;margin-top:6px">${totalTxs}</div>
         </div>
       </div>
-
-      ${adminUsers.length===0 ? '<div style="text-align:center;padding:24px;color:var(--text-dim)">Clique em "Atualizar" para carregar os usuários do banco de dados.</div>' : `
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>Usuário</th><th>Plano</th><th>Saldo Total</th><th>Movim.</th><th>Recorrentes</th><th>Última Mov.</th><th></th>
-          </tr></thead>
-          <tbody>${userRows}</tbody>
-        </table>
-      </div>`}
     </div>
 
-    <div class="card">
-      <div class="card-title">📋 Regras do Firestore (necessárias)</div>
-      <div style="font-size:11px;color:var(--text-secondary);line-height:1.8">
-        Para o painel admin funcionar, atualize as regras do Firestore para permitir leitura admin:
+    ${adminUsers.length===0 ? '<div class="card" style="text-align:center;padding:32px;color:var(--text-dim);font-size:14px">Clique em "Atualizar" para carregar os usuários.</div>' : `
+    <div style="font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:-6px">👥 Usuários (${totalUsers})</div>
+    ${userRows}`}
+
+    <div class="card" style="margin-top:8px">
+      <div style="font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:10px">📋 Regras do Firestore</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:10px">
+        Para o painel admin funcionar, atualize as regras no Firebase Console → Firestore → Regras:
       </div>
-      <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#22c997;line-height:1.6;white-space:pre-wrap">rules_version = '2';
+      <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#22c997;line-height:1.7;white-space:pre-wrap">rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId}/{document=**} {
@@ -4149,7 +4175,6 @@ service cloud.firestore {
     }
   }
 }</div>
-      <div style="font-size:10px;color:var(--text-dim);margin-top:8px">Cole essas regras em Firebase Console → Firestore → Regras.</div>
     </div>
   </div>`;
 }
