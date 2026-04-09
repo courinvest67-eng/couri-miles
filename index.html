@@ -4108,77 +4108,104 @@ function renderAdmin() {
     const balance = u.data?.balances ? Object.values(u.data.balances).reduce((a,b)=>a+b,0) : 0;
     const recurring = u.data?.recurring?.length||0;
     const lastTx = u.data?.transactions?.[0]?.date || '—';
-    const programs = u.data?.balances ? Object.entries(u.data.balances).filter(([k,v])=>v>0).map(([k,v])=>`${k}:${fMiles(v)}`).join(', ') : '—';
+    const lastTxFormatted = lastTx!=='—' ? fDate(lastTx) : '—';
+    const planId = u.data&&u.data._plan?u.data._plan:'free';
+    const planLabel = planId.toUpperCase();
+    const planExpiry = u.data&&u.data._planExpiry ? new Date(u.data._planExpiry).toLocaleDateString('pt-BR') : '';
+    const programs = u.data?.balances ? Object.entries(u.data.balances).filter(([k,v])=>v>0).map(([k,v])=>{
+      const prog=PROGRAMS.find(p=>p.id===k);
+      return prog?prog.name+': '+fMiles(v):k+': '+fMiles(v);
+    }).join(' · ') : 'Nenhum saldo';
 
-    return `<tr style="cursor:pointer" onclick="toggleAdminUserDetail(${i})">
-      <td>
-        <div style="font-size:12px;font-weight:600;color:var(--text-primary)">${u.displayName||'—'}</div>
-        <div style="font-size:10px;color:var(--text-muted)">${u.email||u.uid}</div>
-      </td>
-      <td class="mono" style="font-size:12px;font-weight:700;color:#f5c518">${fMiles(balance)}</td>
-      <td class="mono" style="font-size:11px">${txCount}</td>
-      <td class="mono" style="font-size:11px">${recurring}</td>
-      <td style="font-size:10px;color:var(--text-muted)">${lastTx}</td>
-      <td>
-        <button onclick="event.stopPropagation();viewAdminUser(${i})" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);cursor:pointer;padding:3px 8px;font-size:10px" title="Ver detalhes">👁</button>
-      </td>
-    </tr>
-    <tr id="admin-detail-${i}" style="display:none">
-      <td colspan="6" style="padding:12px;background:rgba(0,0,0,0.2);border-radius:8px">
-        <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">SALDOS POR PROGRAMA</div>
-        <div style="font-size:11px;color:var(--text-secondary)">${programs||'Nenhum saldo'}</div>
-      </td>
-    </tr>`;
+    return `<div class="card" style="padding:16px;margin-bottom:2px">
+      <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleAdminUserDetail(${i})">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,${planId==='premium'?'#c084fc33':'#1a6fb533'},${planId==='pro'?'#f5c51822':'#0a355822'});display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${planId==='premium'?'👑':planId==='pro'?'⭐':planId==='trial'?'🎁':'👤'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary)">${u.displayName||'—'}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${u.email||u.uid}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <span class="plan-badge plan-badge-${planId}" style="font-size:11px;padding:4px 14px">${planLabel}</span>
+          ${planExpiry?'<div style="font-size:10px;color:var(--text-dim);margin-top:4px">até '+planExpiry+'</div>':''}
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;cursor:pointer" onclick="toggleAdminUserDetail(${i})">
+        <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Saldo</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:#f5c518;margin-top:4px">${fMiles(balance)}</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Movim.</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:#3b82f6;margin-top:4px">${txCount}</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Recorr.</div>
+          <div class="mono" style="font-size:16px;font-weight:800;color:#22c997;margin-top:4px">${recurring}</div>
+        </div>
+        <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Última</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-secondary);margin-top:4px">${lastTxFormatted}</div>
+        </div>
+      </div>
+
+      <div id="admin-detail-${i}" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Saldos por Programa</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:2">${programs}</div>
+        <div style="margin-top:12px;text-align:right">
+          <button onclick="event.stopPropagation();viewAdminUser(${i})" style="padding:8px 18px;border-radius:10px;border:none;background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 3px 12px rgba(26,111,181,0.3)">👁 Ver detalhes completos</button>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 
   const totalUsers = adminUsers.length;
   const totalMiles = adminUsers.reduce((a,u) => a + (u.data?.balances ? Object.values(u.data.balances).reduce((s,v)=>s+v,0) : 0), 0);
   const totalTxs = adminUsers.reduce((a,u) => a + (u.data?.transactions?.length||0), 0);
+  const totalPaying = adminUsers.filter(u => u.data&&(u.data._plan==='pro'||u.data._plan==='premium')).length;
 
   return `<div style="display:flex;flex-direction:column;gap:14px">
     <div class="card" style="border-top:3px solid #f5c518">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
         <div>
-          <div style="font-size:16px;font-weight:800;color:#f5c518">🔑 Painel Administrativo</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Gestão de usuários e dados</div>
+          <div style="font-size:20px;font-weight:800;color:#f5c518">🔑 Painel Administrativo</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:4px">Gestão de usuários e assinaturas</div>
         </div>
-        <button class="pill" style="background:linear-gradient(145deg,#1a6fb5,#0a3558)" onclick="loadAdminUsers()">
+        <button class="pill" style="background:linear-gradient(145deg,#1a6fb5,#0a3558);padding:10px 20px;font-size:13px" onclick="loadAdminUsers()">
           ${adminLoading?'⏳ Carregando...':'↻ Atualizar'}
         </button>
       </div>
 
-      <div class="kpi-grid" style="margin-bottom:16px">
-        <div class="mini-card" style="text-align:center;border-left:3px solid #f5c518">
-          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Total Usuários</div>
-          <div class="mono" style="font-size:22px;font-weight:800;color:#f5c518;margin-top:4px">${totalUsers}</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+        <div class="mini-card" style="text-align:center;border-left:3px solid #f5c518;padding:16px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Usuários</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:#f5c518;margin-top:6px">${totalUsers}</div>
         </div>
-        <div class="mini-card" style="text-align:center;border-left:3px solid #1a6fb5">
-          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Milhas na Plataforma</div>
-          <div class="mono" style="font-size:22px;font-weight:800;color:#1a6fb5;margin-top:4px">${fMiles(totalMiles)}</div>
+        <div class="mini-card" style="text-align:center;border-left:3px solid #22c997;padding:16px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Assinantes</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:#22c997;margin-top:6px">${totalPaying}</div>
         </div>
-        <div class="mini-card" style="text-align:center;border-left:3px solid #22c997">
-          <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase">Total Movimentações</div>
-          <div class="mono" style="font-size:22px;font-weight:800;color:#22c997;margin-top:4px">${totalTxs}</div>
+        <div class="mini-card" style="text-align:center;border-left:3px solid #1a6fb5;padding:16px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Milhas</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:#1a6fb5;margin-top:6px">${fMiles(totalMiles)}</div>
+        </div>
+        <div class="mini-card" style="text-align:center;border-left:3px solid #c084fc;padding:16px">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px">Movimentações</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:#c084fc;margin-top:6px">${totalTxs}</div>
         </div>
       </div>
-
-      ${adminUsers.length===0 ? '<div style="text-align:center;padding:24px;color:var(--text-dim)">Clique em "Atualizar" para carregar os usuários do banco de dados.</div>' : `
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>Usuário</th><th>Saldo Total</th><th>Movim.</th><th>Recorrentes</th><th>Última Mov.</th><th></th>
-          </tr></thead>
-          <tbody>${userRows}</tbody>
-        </table>
-      </div>`}
     </div>
 
-    <div class="card">
-      <div class="card-title">📋 Regras do Firestore (necessárias)</div>
-      <div style="font-size:11px;color:var(--text-secondary);line-height:1.8">
-        Para o painel admin funcionar, atualize as regras do Firestore para permitir leitura admin:
+    ${adminUsers.length===0 ? '<div class="card" style="text-align:center;padding:32px;color:var(--text-dim);font-size:14px">Clique em "Atualizar" para carregar os usuários.</div>' : `
+    <div style="font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:-6px">👥 Usuários (${totalUsers})</div>
+    ${userRows}`}
+
+    <div class="card" style="margin-top:8px">
+      <div style="font-size:14px;font-weight:700;color:var(--text-secondary);margin-bottom:10px">📋 Regras do Firestore</div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;margin-bottom:10px">
+        Para o painel admin funcionar, atualize as regras no Firebase Console → Firestore → Regras:
       </div>
-      <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:10px;color:#22c997;line-height:1.6;white-space:pre-wrap">rules_version = '2';
+      <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#22c997;line-height:1.7;white-space:pre-wrap">rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId}/{document=**} {
@@ -4191,7 +4218,6 @@ service cloud.firestore {
     }
   }
 }</div>
-      <div style="font-size:10px;color:var(--text-dim);margin-top:8px">Cole essas regras em Firebase Console → Firestore → Regras.</div>
     </div>
   </div>`;
 }
@@ -5599,27 +5625,59 @@ function renderPaywalledContent(tabId, contentFn) {
   return contentFn();
 }
 
-// ===== PLANS TAB =====
+let planBillingCycle = 'monthly';
+
 function renderPlans() {
   const currentPlan = getUserPlan();
   const trialUsed = !!state._planStarted;
+  const isAnnual = planBillingCycle === 'annual';
 
-  const checkIcon = '<span style="color:#22c997;font-size:12px">✓</span>';
-  const crossIcon = '<span style="color:#3a4558;font-size:12px">✕</span>';
+  const proMonthly = 19.90;
+  const premiumMonthly = 69.90;
+  const discount = 0.15;
+  const proAnnualMonth = Math.round(proMonthly * (1 - discount) * 100) / 100;
+  const premiumAnnualMonth = Math.round(premiumMonthly * (1 - discount) * 100) / 100;
+  const proAnnualTotal = Math.round(proAnnualMonth * 12 * 100) / 100;
+  const premiumAnnualTotal = Math.round(premiumAnnualMonth * 12 * 100) / 100;
+  const proSavings = Math.round((proMonthly * 12 - proAnnualTotal) * 100) / 100;
+  const premiumSavings = Math.round((premiumMonthly * 12 - premiumAnnualTotal) * 100) / 100;
+
+  const proPrice = isAnnual ? proAnnualMonth.toFixed(2).replace('.',',') : proMonthly.toFixed(2).replace('.',',');
+  const premiumPrice = isAnnual ? premiumAnnualMonth.toFixed(2).replace('.',',') : premiumMonthly.toFixed(2).replace('.',',');
+  const proPeriod = isAnnual ? '/mês no anual' : '/mês';
+  const premiumPeriod = isAnnual ? '/mês no anual' : '/mês';
+
+  const proWAText = isAnnual
+    ? 'Olá! Quero assinar o plano Pro ANUAL do Couri Mile$ (R$'+proAnnualTotal.toFixed(2).replace('.',',')+'/ano = R$'+proPrice+'/mês). Meu email: '+(currentUser?currentUser.email:'')
+    : 'Olá! Quero assinar o plano Pro do Couri Mile$ (R$'+proMonthly.toFixed(2).replace('.',',')+'/mês). Meu email: '+(currentUser?currentUser.email:'');
+  const premiumWAText = isAnnual
+    ? 'Olá! Quero assinar o plano Premium ANUAL do Couri Mile$ (R$'+premiumAnnualTotal.toFixed(2).replace('.',',')+'/ano = R$'+premiumPrice+'/mês). Meu email: '+(currentUser?currentUser.email:'')
+    : 'Olá! Quero assinar o plano Premium do Couri Mile$ (R$'+premiumMonthly.toFixed(2).replace('.',',')+'/mês). Meu email: '+(currentUser?currentUser.email:'');
+
+  const checkIcon = '<span style="color:#22c997;font-size:14px">✓</span>';
+  const crossIcon = '<span style="color:#3a4558;font-size:14px">✕</span>';
 
   return `<div style="display:flex;flex-direction:column;gap:14px">
-    <div style="text-align:center;margin-bottom:8px">
-      <div style="font-size:22px;font-weight:800;color:var(--text-primary)">Escolha seu plano</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Gerencie suas milhas como um profissional</div>
-      <div style="margin-top:10px">Plano atual: ${getPlanBadgeHTML()}</div>
+    <div style="text-align:center;margin-bottom:4px">
+      <div style="font-size:24px;font-weight:800;color:var(--text-primary)">Escolha seu plano</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:6px">Gerencie suas milhas como um profissional</div>
+      <div style="margin-top:12px">Plano atual: ${getPlanBadgeHTML()}</div>
+
+      <!-- TOGGLE MENSAL / ANUAL -->
+      <div style="display:inline-flex;align-items:center;gap:0;margin-top:16px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:50px;padding:4px">
+        <button onclick="planBillingCycle='monthly';render()" style="padding:8px 20px;border-radius:50px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.3s;${!isAnnual?'background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;box-shadow:0 2px 10px rgba(26,111,181,0.3)':'background:transparent;color:var(--text-muted)'}">Mensal</button>
+        <button onclick="planBillingCycle='annual';render()" style="padding:8px 20px;border-radius:50px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.3s;${isAnnual?'background:linear-gradient(145deg,#22c997,#17a37a);color:#fff;box-shadow:0 2px 10px rgba(34,201,151,0.3)':'background:transparent;color:var(--text-muted)'}">
+          Anual <span style="background:#22c997;color:#0a3558;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:800;margin-left:4px">-15%</span>
+        </button>
+      </div>
     </div>
 
     <div class="plans-grid">
       <!-- FREE -->
       <div class="pricing-card">
-        <div style="font-size:14px;font-weight:700;color:#556177">Free</div>
+        <div style="font-size:16px;font-weight:700;color:#556177">Free</div>
         <div class="pricing-price" style="color:#556177">R$ 0 <span>/mês</span></div>
-        <div style="font-size:10px;color:var(--text-dim)">Para começar a explorar</div>
+        <div style="font-size:11px;color:var(--text-dim)">Para começar a explorar</div>
         <div class="pricing-features">
           <div class="pricing-feature">${checkIcon} Dashboard básico</div>
           <div class="pricing-feature">${checkIcon} Até 3 programas</div>
@@ -5630,15 +5688,17 @@ function renderPlans() {
           <div class="pricing-feature disabled">${crossIcon} Promoções em tempo real</div>
           <div class="pricing-feature disabled">${crossIcon} Importação de extratos</div>
           <div class="pricing-feature disabled">${crossIcon} Lançamentos recorrentes</div>
+          <div class="pricing-feature disabled">${crossIcon} Consultor IA</div>
         </div>
-        ${currentPlan.id==='free'?'<div style="padding:10px;border-radius:12px;background:rgba(85,97,119,0.1);color:#556177;font-size:12px;font-weight:700;text-align:center">Plano Atual</div>':''}
+        ${currentPlan.id==='free'?'<div style="padding:12px;border-radius:14px;background:rgba(85,97,119,0.1);color:#556177;font-size:13px;font-weight:700;text-align:center">Plano Atual</div>':''}
       </div>
 
       <!-- PRO -->
       <div class="pricing-card featured">
-        <div style="font-size:14px;font-weight:700;color:#f5c518">Pro</div>
-        <div class="pricing-price" style="color:#f5c518">R$ 19,90 <span>/mês</span></div>
-        <div style="font-size:10px;color:var(--text-dim)">Para quem leva milhas a sério</div>
+        <div style="font-size:16px;font-weight:700;color:#f5c518">Pro</div>
+        <div class="pricing-price" style="color:#f5c518">R$ ${proPrice} <span>${proPeriod}</span></div>
+        <div style="font-size:11px;color:var(--text-dim)">Para quem leva milhas a sério</div>
+        ${isAnnual?'<div style="margin-top:6px;font-size:12px;color:#22c997;font-weight:700">💰 Economia de R$ '+proSavings.toFixed(2).replace('.',',')+'/ano</div><div style="font-size:11px;color:var(--text-muted)">Total: R$ '+proAnnualTotal.toFixed(2).replace('.',',')+'/ano</div>':''}
         <div class="pricing-features">
           <div class="pricing-feature">${checkIcon} Dashboard completo</div>
           <div class="pricing-feature">${checkIcon} <strong>Todos os 8 programas</strong></div>
@@ -5649,37 +5709,60 @@ function renderPlans() {
           <div class="pricing-feature">${checkIcon} <strong>Promoções em tempo real</strong></div>
           <div class="pricing-feature">${checkIcon} <strong>Importação de extratos</strong></div>
           <div class="pricing-feature">${checkIcon} <strong>Lançamentos recorrentes</strong></div>
+          <div class="pricing-feature disabled">${crossIcon} Consultor IA</div>
         </div>
-        ${currentPlan.id==='pro'?'<div style="padding:10px;border-radius:12px;background:rgba(245,197,24,0.1);color:#f5c518;font-size:12px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
-        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Quero assinar o plano Pro do Couri Mile$ (R$19,90/mês). Meu email: '+(currentUser?currentUser.email:''))}" target="_blank" rel="noopener" style="display:block;padding:12px;border-radius:14px;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:14px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,197,24,0.3)">Assinar Pro</a>`}
+        ${currentPlan.id==='pro'?'<div style="padding:12px;border-radius:14px;background:rgba(245,197,24,0.1);color:#f5c518;font-size:13px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
+        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(proWAText)}" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,197,24,0.3)">Assinar Pro${isAnnual?' Anual':''}</a>`}
       </div>
 
       <!-- PREMIUM -->
       <div class="pricing-card">
-        <div style="font-size:14px;font-weight:700;color:#c084fc">Premium</div>
-        <div class="pricing-price" style="color:#c084fc">R$ 69,90 <span>/mês</span></div>
-        <div style="font-size:10px;color:var(--text-dim)">Máxima performance em milhas</div>
+        <div style="font-size:16px;font-weight:700;color:#c084fc">Premium</div>
+        <div class="pricing-price" style="color:#c084fc">R$ ${premiumPrice} <span>${premiumPeriod}</span></div>
+        <div style="font-size:11px;color:var(--text-dim)">Máxima performance em milhas</div>
+        ${isAnnual?'<div style="margin-top:6px;font-size:12px;color:#22c997;font-weight:700">💰 Economia de R$ '+premiumSavings.toFixed(2).replace('.',',')+'/ano</div><div style="font-size:11px;color:var(--text-muted)">Total: R$ '+premiumAnnualTotal.toFixed(2).replace('.',',')+'/ano</div>':''}
         <div class="pricing-features">
           <div class="pricing-feature">${checkIcon} <strong>Tudo do Pro</strong></div>
           <div class="pricing-feature">${checkIcon} Suporte prioritário WhatsApp</div>
           <div class="pricing-feature">${checkIcon} Consultoria mensal 1:1</div>
+          <div class="pricing-feature">${checkIcon} <strong>Consultor IA (50 msgs/mês)</strong></div>
           <div class="pricing-feature">${checkIcon} Alertas personalizados (em breve)</div>
           <div class="pricing-feature">${checkIcon} Multi-carteira (em breve)</div>
         </div>
-        ${currentPlan.id==='premium'?'<div style="padding:10px;border-radius:12px;background:rgba(192,132,252,0.1);color:#c084fc;font-size:12px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
-        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Quero assinar o plano Premium do Couri Mile$ (R$69,90/mês). Meu email: '+(currentUser?currentUser.email:''))}" target="_blank" rel="noopener" style="display:block;padding:12px;border-radius:14px;background:linear-gradient(145deg,#c084fc,#9333ea);color:#fff;font-size:14px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(192,132,252,0.3)">Assinar Premium</a>`}
+        ${currentPlan.id==='premium'?'<div style="padding:12px;border-radius:14px;background:rgba(192,132,252,0.1);color:#c084fc;font-size:13px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
+        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(premiumWAText)}" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#c084fc,#9333ea);color:#fff;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(192,132,252,0.3)">Assinar Premium${isAnnual?' Anual':''}</a>`}
+      </div>
+
+      <!-- VIP -->
+      <div class="pricing-card" style="border-color:#f59e0b55;background:linear-gradient(180deg,rgba(245,158,11,0.06),var(--bg-card))">
+        <div style="font-size:16px;font-weight:700;color:#f59e0b">👑 VIP</div>
+        <div class="pricing-price" style="color:#f59e0b">R$ ${isAnnual?(149.90*0.85).toFixed(2).replace('.',','):'149,90'} <span>${isAnnual?'/mês no anual':'/mês'}</span></div>
+        <div style="font-size:11px;color:var(--text-dim)">Gestão completa pela Courinvest</div>
+        ${isAnnual?'<div style="margin-top:6px;font-size:12px;color:#22c997;font-weight:700">💰 Economia de R$ '+((149.90*12)-(149.90*0.85*12)).toFixed(2).replace('.',',')+'/ano</div><div style="font-size:11px;color:var(--text-muted)">Total: R$ '+(149.90*0.85*12).toFixed(2).replace('.',',')+'/ano</div>':''}
+        <div class="pricing-features">
+          <div class="pricing-feature">${checkIcon} <strong>Tudo do Premium</strong></div>
+          <div class="pricing-feature">${checkIcon} <strong>Gestão feita por nós</strong></div>
+          <div class="pricing-feature">${checkIcon} Lançamentos pelo consultor</div>
+          <div class="pricing-feature">${checkIcon} Acompanhamento de saldos</div>
+          <div class="pricing-feature">${checkIcon} Alertas de vencimento</div>
+          <div class="pricing-feature">${checkIcon} Estratégia de acúmulo/resgate</div>
+          <div class="pricing-feature">${checkIcon} <strong>Consultor IA ilimitado</strong></div>
+          <div class="pricing-feature">${checkIcon} Suporte prioritário 24h</div>
+        </div>
+        ${currentPlan.id==='vip'?'<div style="padding:12px;border-radius:14px;background:rgba(245,158,11,0.1);color:#f59e0b;font-size:13px;font-weight:700;text-align:center">👑 Plano Atual</div>':`
+        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(isAnnual?'Olá! Quero assinar o plano VIP ANUAL do Couri Mile$ (R$'+(149.90*0.85*12).toFixed(2).replace('.',',')+'/ano). Meu email: '+(currentUser?currentUser.email:''):'Olá! Quero assinar o plano VIP do Couri Mile$ (R$149,90/mês) com gestão completa. Meu email: '+(currentUser?currentUser.email:''))}" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#f59e0b,#d97706);color:#0a3558;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,158,11,0.3)">👑 Assinar VIP${isAnnual?' Anual':''}</a>`}
       </div>
     </div>
 
     ${!trialUsed && currentPlan.id==='free' ? `
     <div class="card" style="border:2px solid #3b82f6;text-align:center">
       <div style="font-size:16px;font-weight:800;color:#3b82f6;margin-bottom:6px">🎁 Teste grátis por 7 dias!</div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Experimente todos os recursos Pro sem compromisso. Sem cartão de crédito.</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Experimente todos os recursos Pro sem compromisso. Sem cartão de crédito.</div>
       <button onclick="startTrial()" style="padding:12px 32px;border-radius:14px;border:none;background:linear-gradient(145deg,#3b82f6,#2563eb);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 16px rgba(59,130,246,0.3)">Começar Trial Grátis</button>
     </div>` : ''}
 
     <div class="card" style="text-align:center">
-      <div style="font-size:11px;color:var(--text-dim);line-height:1.7">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.7">
         💬 Dúvidas? Entre em contato pelo <a href="https://wa.me/${WHATSAPP_NUMBER}" target="_blank" style="color:#22c997;text-decoration:none;font-weight:600">WhatsApp</a><br>
         📧 ou por email: <a href="mailto:courinvest.67@gmail.com" style="color:#3b82f6;text-decoration:none;font-weight:600">courinvest.67@gmail.com</a>
       </div>
@@ -5701,6 +5784,7 @@ function startTrial() {
   renderTabs();
   render();
 }
+
 
 // ===== ADMIN: PLAN MANAGEMENT =====
 function adminSetPlan(uid, planId, months) {
