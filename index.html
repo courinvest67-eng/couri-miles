@@ -5132,8 +5132,11 @@ let onboardingSelectedProgs = [];
 
 function shouldShowOnboarding() {
   if(!currentUser) return false;
-  if(state.transactions.length > 0) return false;
+  if(state.transactions && state.transactions.length > 0) return false;
+  if(state.balances && Object.values(state.balances).some(function(v){return v>0;})) return false;
   if(localStorage.getItem('onboarding-done-'+currentUser.uid)) return false;
+  if(state._planStarted) return false;
+  if(isAdmin()) return false;
   return true;
 }
 
@@ -5180,9 +5183,9 @@ function renderOnboardingStep() {
     var progsHTML = PROGRAMS.map(function(p) {
       var sel = onboardingSelectedProgs.indexOf(p.id) >= 0;
       return '<div class="onboarding-prog-item '+(sel?'selected':'')+'" onclick="toggleOnboardingProg(\''+p.id+'\')">' +
-        logoHTML(p,28) +
-        '<span class="prog-name">'+p.name+'</span>' +
-        (sel?'<span style="color:#f5c518;font-size:14px;margin-left:auto">✓</span>':'') +
+        '<div style="display:flex;align-items:center;gap:10px;flex:1">' + logoHTML(p,28) +
+        '<span style="font-size:13px;font-weight:600;color:var(--text-primary)">'+p.name+'</span></div>' +
+        (sel?'<span style="color:#f5c518;font-size:14px">✓</span>':'') +
       '</div>';
     }).join('');
 
@@ -5714,7 +5717,7 @@ function renderPlans() {
           <div class="pricing-feature disabled">${crossIcon} Consultor IA</div>
         </div>
         ${currentPlan.id==='pro'?'<div style="padding:12px;border-radius:14px;background:rgba(245,197,24,0.1);color:#f5c518;font-size:13px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
-        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(proWAText)}" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,197,24,0.3)">Assinar Pro${isAnnual?' Anual':''}</a>`}
+        <a href="https://courinvest.app.vindi.com.br/customer/pages/749afb14-29ba-432a-afd3-ff17e2d69e33/subscriptions/new" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,197,24,0.3)">Assinar Pro${isAnnual?' Anual':''}</a>`}
       </div>
 
       <!-- PREMIUM -->
@@ -5732,7 +5735,7 @@ function renderPlans() {
           <div class="pricing-feature">${checkIcon} Multi-carteira (em breve)</div>
         </div>
         ${currentPlan.id==='premium'?'<div style="padding:12px;border-radius:14px;background:rgba(192,132,252,0.1);color:#c084fc;font-size:13px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
-        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(premiumWAText)}" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#c084fc,#9333ea);color:#fff;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(192,132,252,0.3)">Assinar Premium${isAnnual?' Anual':''}</a>`}
+        <a href="https://courinvest.app.vindi.com.br/customer/pages/6d6d21bd-6493-4cad-999b-638c978b2276/subscriptions/new" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#c084fc,#9333ea);color:#fff;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(192,132,252,0.3)">Assinar Premium${isAnnual?' Anual':''}</a>`}
       </div>
 
       <!-- VIP -->
@@ -5752,7 +5755,7 @@ function renderPlans() {
           <div class="pricing-feature">${checkIcon} Suporte prioritário 24h</div>
         </div>
         ${currentPlan.id==='vip'?'<div style="padding:12px;border-radius:14px;background:rgba(245,158,11,0.1);color:#f59e0b;font-size:13px;font-weight:700;text-align:center">👑 Plano Atual</div>':`
-        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(isAnnual?'Olá! Quero assinar o plano VIP ANUAL do Couri Mile$ (R$'+(149.90*0.85*12).toFixed(2).replace('.',',')+'/ano). Meu email: '+(currentUser?currentUser.email:''):'Olá! Quero assinar o plano VIP do Couri Mile$ (R$149,90/mês) com gestão completa. Meu email: '+(currentUser?currentUser.email:''))}" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#f59e0b,#d97706);color:#0a3558;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,158,11,0.3)">👑 Assinar VIP${isAnnual?' Anual':''}</a>`}
+        <a href="https://courinvest.app.vindi.com.br/customer/pages/8fa7b905-3b88-491a-bcaf-9a7afd67c849/subscriptions/new" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#f59e0b,#d97706);color:#0a3558;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,158,11,0.3)">👑 Assinar VIP${isAnnual?' Anual':''}</a>`}
       </div>
     </div>
 
@@ -5847,430 +5850,4 @@ function canSendConsultorMsg() {
 
 function incrementConsultorMsg() {
   const now = new Date();
-  const monthKey = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-  state._consultorMsgMonth = monthKey;
-  state._consultorMsgsUsed = (state._consultorMsgsUsed || 0) + 1;
-  saveState();
-}
-
-function buildConsultorSystemPrompt() {
-  const m = getMetrics();
-  const plan = getUserPlan();
-
-  let balancesText = '';
-  PROGRAMS.forEach(function(p) {
-    const bal = state.balances[p.id] || 0;
-    if(bal > 0) {
-      const acq = getProgAcquisition(p.id);
-      const mv = getMarketValBRL(p.id);
-      balancesText += '- ' + p.name + ': ' + fMiles(bal) + ' milhas (custo médio R$' + acq.avgCostPerK.toFixed(2) + '/K, valor mercado R$' + mv.toFixed(2) + '/K)\n';
-    }
-  });
-  if(!balancesText) balancesText = '- Nenhum saldo registrado ainda\n';
-
-  const recentTxs = state.transactions.slice(0, 10).map(function(t) {
-    const prog = PROGRAMS.find(function(p){return p.id===t.program;});
-    return '  ' + t.date + ' | ' + (prog?prog.name:t.program) + ' | ' + TYPE_LABELS[t.type] + ' | ' + fMiles(t.miles) + ' milhas' + (t.cost>0?' | R$'+t.cost.toFixed(2):'');
-  }).join('\n');
-
-  return `Você é o Consultor de Milhas do Couri Mile$, um assistente especializado em programas de fidelidade e milhas aéreas do Brasil.
-
-IDENTIDADE:
-- Nome: Consultor Couri Mile$
-- Tom: consultivo, direto, amigável, com dados concretos
-- Especialidade: milhas aéreas, pontos de fidelidade, programas brasileiros (Livelo, Smiles, TudoAzul, LATAM Pass, ALL Accor, Esfera, C6 Átomos, Inter Loop)
-- Responda SEMPRE em português brasileiro
-
-DADOS DO USUÁRIO (use para personalizar respostas):
-Plano: ${plan.name}
-Saldos atuais:
-${balancesText}
-Total de milhas: ${fMiles(m.totalMiles)}
-Total investido: ${fCur(m.totalSpent)}
-Custo médio geral: R$ ${m.avgCostPerK.toFixed(2)}/milheiro
-Receita com vendas: ${fCur(m.totalRevenue)}
-Economia com resgates: ${fCur(m.totalSaved)}
-Lucro total: ${fCur(m.totalProfit)}
-Valor de mercado do portfólio: ${fCur(getTotalPortfolioValue())}
-
-Últimas movimentações:
-${recentTxs || '  Nenhuma movimentação registrada'}
-
-CONHECIMENTO:
-- Programas: Livelo (Bradesco/BB), Smiles (GOL), TudoAzul (Azul), LATAM Pass (LATAM), ALL Accor (hotéis), Esfera (Santander), C6 Átomos (C6 Bank), Inter Loop (Banco Inter)
-- Transferências bonificadas: promoções frequentes entre bancos e cias aéreas (ex: Livelo→Smiles com 80% bônus)
-- Clubes de milhas: Clube Livelo, Clube Smiles, Clube TudoAzul, Clube LATAM Pass
-- Valor de mercado: varia por programa (Livelo ~R$35/K, Smiles ~R$23/K, TudoAzul ~R$22/K, LATAM Pass ~R$29/K)
-- MaxMilhas/HotMilhas: plataformas para venda de milhas
-- Bumerangue: parte dos pontos retorna à origem em algumas transferências
-
-FUNCIONALIDADES DO APP QUE VOCÊ PODE EXPLICAR:
-- Dashboard: visão geral de KPIs, saldo, distribuição, movimentações recentes
-- Programas: saldo por programa com custo médio, valor de mercado, lucro
-- Histórico: todas as movimentações com filtros e busca
-- Simulador: compara custo de emissão com milhas vs dinheiro vs híbrido
-- Promoções: promoções de milhas em tempo real do Melhores Destinos e outros
-- Relatórios: exportação Excel detalhada por período
-- Contas: atualizar saldos, valor de mercado, lançamentos recorrentes
-- Transferências: com paridade, bônus e bumerangue
-
-REGRAS:
-1. Sempre baseie recomendações nos DADOS REAIS do usuário quando possível
-2. Cite números específicos (custo, saldo, valor de mercado)
-3. Seja objetivo e prático — dê ações concretas
-4. Não dê conselho financeiro genérico — foque em milhas e pontos
-5. Se não souber algo, diga honestamente
-6. Respostas concisas (2-4 parágrafos no máximo, use listas quando útil)
-7. Use emojis moderadamente para tornar a leitura mais agradável
-8. Quando relevante, sugira funcionalidades do app que ajudem o usuário`;
-}
-
-function renderConsultor() {
-  const plan = getUserPlan();
-  const isPremium = plan.id === 'premium' || isAdmin();
-
-  if(!isPremium) {
-    return `<div style="display:flex;flex-direction:column;gap:14px">
-      <div class="card" style="position:relative;min-height:400px;border-top:3px solid #c084fc">
-        <div style="filter:blur(4px);opacity:0.2;pointer-events:none">
-          <div style="font-size:16px;font-weight:800;margin-bottom:12px">💬 Consultor de Milhas IA</div>
-          <div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:12px 16px;margin-bottom:8px;font-size:13px;color:var(--text-muted)">Olá! Sou seu consultor de milhas pessoal...</div>
-          <div style="background:rgba(26,111,181,0.2);border-radius:16px;padding:12px 16px;margin-bottom:8px;font-size:13px;align-self:flex-end;margin-left:auto;max-width:70%">Quero saber se devo vender ou usar minhas milhas</div>
-          <div style="background:rgba(255,255,255,0.03);border-radius:16px;padding:12px 16px;font-size:13px;color:var(--text-muted)">Com base nos seus dados, suas milhas Smiles custaram R$18,50/K...</div>
-        </div>
-        <div class="paywall-overlay">
-          <div class="paywall-icon">💬</div>
-          <div class="paywall-title">Consultor de Milhas IA</div>
-          <div class="paywall-desc">Seu consultor pessoal que analisa seus dados e dá recomendações inteligentes.<br>Disponível exclusivamente no plano Premium.</div>
-          <button class="paywall-btn" onclick="switchTab('plans')">⭐ Assinar Premium</button>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  const used = getConsultorMsgCount();
-  const remaining = Math.max(0, CONSULTOR_MONTHLY_LIMIT - used);
-
-  let messagesHTML = '';
-  if(consultorHistory.length === 0) {
-    messagesHTML = `
-      <div class="chat-bubble chat-bubble-ai">
-        <strong>Olá! 👋</strong> Sou seu consultor de milhas pessoal do Couri Mile$.<br><br>
-        Tenho acesso aos seus saldos, custos e movimentações. Posso te ajudar com:<br>
-        • Quando vender ou resgatar milhas<br>
-        • Melhores momentos para transferir<br>
-        • Análise de rentabilidade dos seus programas<br>
-        • Dúvidas sobre o app<br><br>
-        <em style="color:var(--text-dim)">Como posso te ajudar?</em>
-      </div>`;
-  } else {
-    messagesHTML = consultorHistory.map(function(msg) {
-      if(msg.role === 'user') {
-        return '<div class="chat-bubble chat-bubble-user">' + escapeHTML(msg.content) + '</div>';
-      } else {
-        return '<div class="chat-bubble chat-bubble-ai">' + formatConsultorResponse(msg.content) + '</div>';
-      }
-    }).join('');
-  }
-
-  if(consultorSending) {
-    messagesHTML += '<div class="chat-bubble chat-bubble-ai chat-typing"><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div></div>';
-  }
-
-  const suggestions = [
-    'Devo vender ou usar minhas milhas?',
-    'Qual programa tem melhor custo-benefício?',
-    'Como funciona o simulador?',
-    'Quando transferir com bônus?',
-    'Análise do meu portfólio',
-    'Como importar meu extrato?',
-  ];
-
-  const suggestionsHTML = consultorHistory.length === 0 ? `
-    <div class="chat-suggestions">
-      ${suggestions.map(function(s){ return '<button class="chat-suggestion" onclick="sendConsultorFromSuggestion(this)" data-msg="'+s+'">'+s+'</button>'; }).join('')}
-    </div>` : '';
-
-  return `<div style="display:flex;flex-direction:column;gap:14px">
-    <div class="card" style="border-top:3px solid #c084fc;padding:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <div style="font-size:16px;font-weight:800;color:var(--text-primary)">💬 Consultor de Milhas IA</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${consultorHistory.length>0?'<button onclick="consultorHistory=[];render()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);cursor:pointer;padding:4px 10px;font-size:10px;font-family:inherit">🗑 Limpar</button>':''}
-          <span class="plan-badge plan-badge-premium">PREMIUM</span>
-        </div>
-      </div>
-      <div class="chat-counter">${remaining} mensagens restantes este mês (${used}/${CONSULTOR_MONTHLY_LIMIT} usadas)</div>
-
-      <div class="chat-container">
-        <div class="chat-messages" id="chat-messages">
-          ${messagesHTML}
-        </div>
-        ${suggestionsHTML}
-        <div class="chat-input-bar">
-          <textarea class="chat-input" id="chat-input" placeholder="${remaining>0?'Pergunte sobre suas milhas...':'Limite mensal atingido. Renova no próximo mês.'}" rows="1" ${remaining<=0?'disabled':''} onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendConsultorMessage()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
-          <button class="chat-send-btn" onclick="sendConsultorMessage()" ${remaining<=0||consultorSending?'disabled':''}>➤</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function escapeHTML(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function formatConsultorResponse(text) {
-  // Convert markdown-like formatting to HTML
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:4px;font-size:12px">$1</code>')
-    .replace(/^• /gm, '• ')
-    .replace(/\n/g, '<br>');
-}
-
-function sendConsultorFromSuggestion(btn) {
-  var msg = btn.getAttribute('data-msg');
-  if(msg) {
-    document.getElementById('chat-input').value = msg;
-    sendConsultorMessage();
-  }
-}
-
-async function sendConsultorMessage() {
-  if(consultorSending) return;
-  var inputEl = document.getElementById('chat-input');
-  if(!inputEl) return;
-  var msg = inputEl.value.trim();
-  if(!msg) return;
-
-  if(!canSendConsultorMsg()) {
-    showToast('warning', 'Limite atingido', 'Você usou todas as ' + CONSULTOR_MONTHLY_LIMIT + ' mensagens deste mês. Renova automaticamente no próximo mês.');
-    return;
-  }
-
-  // Add user message
-  consultorHistory.push({ role: 'user', content: msg });
-  inputEl.value = '';
-  inputEl.style.height = 'auto';
-  consultorSending = true;
-  render();
-
-  // Scroll to bottom
-  setTimeout(function() {
-    var chatEl = document.getElementById('chat-messages');
-    if(chatEl) chatEl.scrollTop = chatEl.scrollHeight;
-  }, 100);
-
-  try {
-    // Build messages array for API
-    var apiMessages = consultorHistory.map(function(m) {
-      return { role: m.role, content: m.content };
-    });
-
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: buildConsultorSystemPrompt(),
-        messages: apiMessages
-      })
-    });
-
-    if(!response.ok) {
-      var errData = await response.json().catch(function(){return {};});
-      throw new Error(errData.error?.message || 'Erro na API (status ' + response.status + ')');
-    }
-
-    var data = await response.json();
-    var aiText = data.content.map(function(c) { return c.type === 'text' ? c.text : ''; }).join('');
-
-    if(!aiText) aiText = 'Desculpe, não consegui processar sua pergunta. Tente reformular.';
-
-    consultorHistory.push({ role: 'assistant', content: aiText });
-    incrementConsultorMsg();
-
-  } catch(err) {
-    console.error('Consultor error:', err);
-    consultorHistory.push({ role: 'assistant', content: '⚠️ **Erro ao conectar com o consultor.** ' + (err.message || '') + '\n\nTente novamente em alguns instantes. Se o problema persistir, verifique sua conexão.' });
-  }
-
-  consultorSending = false;
-  render();
-
-  // Scroll to bottom after render
-  setTimeout(function() {
-    var chatEl = document.getElementById('chat-messages');
-    if(chatEl) chatEl.scrollTop = chatEl.scrollHeight;
-  }, 150);
-}
-
-
-// ===== ADMIN: CLIENT ACCOUNT MANAGEMENT =====
-async function adminUpdateBalance(uid, shortId) {
-  if(!isAdmin() || !useFirebase) return;
-  var progEl = document.getElementById('admin-bal-prog-'+shortId);
-  var valEl = document.getElementById('admin-bal-val-'+shortId);
-  if(!progEl || !valEl) return;
-  var progId = progEl.value;
-  var newBal = parseInt(valEl.value);
-  if(isNaN(newBal) || newBal < 0) { showToast('error','Erro','Informe um saldo valido.'); return; }
-  try {
-    var doc = await db.collection('users').doc(uid).get();
-    if(!doc.exists) { showToast('error','Erro','Usuario nao encontrado.'); return; }
-    var userData = doc.data();
-    if(!userData.balances) userData.balances = {};
-    var oldBal = userData.balances[progId] || 0;
-    userData.balances[progId] = newBal;
-    await db.collection('users').doc(uid).update({ balances: userData.balances });
-    var prog = PROGRAMS.find(function(p){return p.id===progId;});
-    showToast('success','Saldo atualizado',(prog?prog.name:progId)+': '+fMiles(oldBal)+' para '+fMiles(newBal));
-    valEl.value = '';
-    loadAdminUsers();
-  } catch(e) { showToast('error','Erro','Falha: '+e.message); }
-}
-
-async function adminAddTransaction(uid, shortId) {
-  if(!isAdmin() || !useFirebase) return;
-  var typeEl = document.getElementById('admin-tx-type-'+shortId);
-  var progEl = document.getElementById('admin-tx-prog-'+shortId);
-  var milesEl = document.getElementById('admin-tx-miles-'+shortId);
-  var costEl = document.getElementById('admin-tx-cost-'+shortId);
-  var dateEl = document.getElementById('admin-tx-date-'+shortId);
-  var descEl = document.getElementById('admin-tx-desc-'+shortId);
-  if(!typeEl||!progEl||!milesEl) return;
-  var txType = typeEl.value;
-  var progId = progEl.value;
-  var miles = parseInt(milesEl.value);
-  var cost = parseFloat(costEl.value) || 0;
-  var date = dateEl.value || new Date().toISOString().split('T')[0];
-  var desc = descEl.value || ('Admin: '+TYPE_LABELS[txType]);
-  if(!miles || miles <= 0) { showToast('error','Erro','Informe a quantidade de milhas.'); return; }
-  try {
-    var doc = await db.collection('users').doc(uid).get();
-    if(!doc.exists) { showToast('error','Erro','Usuario nao encontrado.'); return; }
-    var userData = doc.data();
-    if(!userData.transactions) userData.transactions = [];
-    if(!userData.balances) userData.balances = {};
-    var tx = {
-      id: Date.now() + Math.round(Math.random()*1000000),
-      date: date, program: progId, type: txType, miles: miles,
-      cost: txType==='uso' ? 0 : cost,
-      savedValue: txType==='uso' ? cost : 0,
-      description: desc,
-      costPerK: miles>0&&cost>0 ? (cost/miles)*1000 : 0,
-      addedByAdmin: true, adminEmail: currentUser.email,
-    };
-    if(txType==='compra') { tx.isOrganic = cost <= 0; }
-    userData.transactions.unshift(tx);
-    if(txType==='compra') userData.balances[progId] = (userData.balances[progId]||0) + miles;
-    else if(txType==='venda' || txType==='uso') userData.balances[progId] = Math.max(0, (userData.balances[progId]||0) - miles);
-    await db.collection('users').doc(uid).update({ transactions: userData.transactions, balances: userData.balances });
-    var prog = PROGRAMS.find(function(p){return p.id===progId;});
-    showToast('success','Lancamento registrado',TYPE_LABELS[txType]+' de '+fMiles(miles)+' '+(prog?prog.name:''));
-    milesEl.value = ''; costEl.value = ''; descEl.value = '';
-    loadAdminUsers();
-  } catch(e) { showToast('error','Erro','Falha: '+e.message); }
-}
-
-
-// ===== MILES EXPIRATION INFO =====
-const MILES_EXPIRY_RULES = {
-  livelo: { months: 24, rule: 'Pontos expiram em 24 meses apos o acumulo.', renewable: false, tip: 'Assinantes do Clube Livelo (qualquer plano) tem pontos que NAO expiram enquanto a assinatura estiver ativa.', club: 'Clube Livelo (qualquer plano)', clubUrl: 'https://www.livelo.com.br/clube' },
-  smiles: { months: 36, rule: 'Milhas expiram conforme a categoria: Diamante 36m, demais 36m apos acumulo.', renewable: false, tip: 'Clube Smiles 7.000/10.000/20.000: milhas NAO expiram. Planos 1.000/2.000/5.000: validade de 10 anos. Cartao GOL Smiles Infinite: milhas do cartao nao expiram.', club: 'Clube Smiles 7K+ ou Cartao Infinite', clubUrl: 'https://www.smiles.com.br/clube-smiles/bem-vindo' },
-  tudoazul: { months: 24, rule: 'Pontos expiram em 24 meses sem movimentacao na conta.', renewable: true, tip: 'Clube Azul 10.000/20.000: pontos NAO expiram com assinatura ativa. Cartao Azul Itau Infinite/Skyline: pontos nao expiram. Qualquer acumulo ou resgate renova a validade.', club: 'Clube Azul 10K/20K ou Cartao Infinite', clubUrl: 'https://www.voeazul.com.br/tudoazul' },
-  latampass: { months: 24, rule: 'Pontos expiram em 24 meses sem movimentacao na conta.', renewable: true, tip: 'Qualquer atividade (acumulo, resgate ou transferencia) renova a validade de todos os pontos. Nao ha clube que elimine a expiracao, mas basta 1 movimentacao para renovar.', club: null, clubUrl: null },
-  esfera: { months: 0, rule: 'Pontos Esfera NAO expiram enquanto o cartao Santander estiver ativo.', renewable: false, tip: 'Mantenha seu cartao Santander ativo. Pontos sao vinculados ao cartao.', club: null, clubUrl: null },
-  c6atomos: { months: 0, rule: 'Atomos C6 Bank NAO expiram enquanto a conta C6 estiver ativa.', renewable: false, tip: 'Seus atomos estao seguros enquanto sua conta C6 Bank existir.', club: null, clubUrl: null },
-  interloop: { months: 12, rule: 'Pontos Inter Loop expiram em 12 meses apos o acumulo.', renewable: false, tip: 'Planeje resgates ou transferencias antes do vencimento. Pontos mais antigos vencem primeiro (FIFO). Nao ha clube que elimine expiracao.', club: null, clubUrl: null },
-  allaccor: { months: 12, rule: 'Pontos ALL expiram 12 meses apos ultima atividade na conta.', renewable: true, tip: 'Status Accor Silver ou superior: pontos NAO expiram. Qualquer hospedagem, acumulo ou resgate renova a validade de todos os pontos.', club: 'ALL Accor Silver+ ou Ibis Business', clubUrl: 'https://all.accor.com/loyalty-program/index.pt-br.shtml' },
-};
-
-function getExpiryInfo(programId) {
-  var rules = MILES_EXPIRY_RULES[programId];
-  if(!rules) return null;
-  
-  var balance = state.balances[programId] || 0;
-  if(balance <= 0) return { rules: rules, status: 'empty', message: 'Sem saldo', daysLeft: null };
-
-  // Find the last transaction date for this program
-  var lastTx = null;
-  for(var i = 0; i < state.transactions.length; i++) {
-    var t = state.transactions[i];
-    if(t.program === programId) {
-      lastTx = t.date;
-      break;
-    }
-  }
-
-  if(!lastTx) return { rules: rules, status: 'unknown', message: 'Sem dados de movimentacao', daysLeft: null };
-
-  if(rules.months === 0) return { rules: rules, status: 'safe', message: 'Nao expiram', daysLeft: null };
-
-  var lastDate = new Date(lastTx + 'T12:00:00');
-  var expiryDate = new Date(lastDate);
-  expiryDate.setMonth(expiryDate.getMonth() + rules.months);
-  
-  var now = new Date();
-  var daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-
-  var status = 'safe';
-  var message = '';
-
-  if(daysLeft <= 0) {
-    status = 'expired';
-    message = 'Milhas podem ter expirado!';
-  } else if(daysLeft <= 30) {
-    status = 'critical';
-    message = 'Expiram em ' + daysLeft + ' dias!';
-  } else if(daysLeft <= 90) {
-    status = 'warning';
-    message = 'Expiram em ' + daysLeft + ' dias';
-  } else {
-    status = 'safe';
-    message = 'Validas ate ' + expiryDate.toLocaleDateString('pt-BR');
-  }
-
-  return { rules: rules, status: status, message: message, daysLeft: daysLeft, expiryDate: expiryDate, lastTxDate: lastDate };
-}
-
-function getExpiryBadgeHTML(programId) {
-  var info = getExpiryInfo(programId);
-  if(!info || info.status === 'empty') return '';
-
-  var rules = info.rules;
-  var clubHTML = '';
-  if(rules.club && rules.clubUrl) {
-    clubHTML = '<div style="margin-top:4px"><a href="'+rules.clubUrl+'" target="_blank" rel="noopener" style="font-size:12px;color:#3b82f6;text-decoration:none;font-weight:700">&#x1F48E; Nao expira com: '+rules.club+' &rarr;</a></div>';
-  } else if(rules.club) {
-    clubHTML = '<div style="font-size:12px;color:#3b82f6;margin-top:4px;font-weight:700">&#x1F48E; Nao expira com: '+rules.club+'</div>';
-  }
-  
-  if(rules.months === 0) {
-    return '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(34,201,151,0.06);border:1px solid rgba(34,201,151,0.15)"><span style="font-size:14px">&#x2705;</span><div><div style="font-size:14px;font-weight:700;color:#22c997">Nao expiram</div><div style="font-size:12px;color:var(--text-secondary);margin-top:3px">' + rules.tip + '</div></div></div>';
-  }
-
-  if(info.status === 'unknown') {
-    return '<div style="display:flex;align-items:flex-start;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15)"><span style="font-size:14px">&#x2139;&#xFE0F;</span><div><div style="font-size:13px;font-weight:700;color:#3b82f6">Validade: ' + rules.months + ' meses ' + (rules.renewable ? '(renovavel)' : '(por lote)') + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px">' + rules.tip + '</div>' + clubHTML + '</div></div>';
-  }
-
-  var colors = {
-    expired: { bg: 'rgba(240,70,90,0.08)', border: 'rgba(240,70,90,0.25)', text: '#f0465a', icon: '&#x1F6A8;' },
-    critical: { bg: 'rgba(240,70,90,0.08)', border: 'rgba(240,70,90,0.25)', text: '#f0465a', icon: '&#x26A0;&#xFE0F;' },
-    warning: { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)', text: '#f59e0b', icon: '&#x23F3;' },
-    safe: { bg: 'rgba(34,201,151,0.06)', border: 'rgba(34,201,151,0.15)', text: '#22c997', icon: '&#x2705;' },
-  };
-  var c = colors[info.status] || colors.safe;
-
-  var renewLabel = rules.renewable ? ' (renovavel com movimentacao)' : ' (por lote - FIFO)';
-  var dateLabel = info.expiryDate ? ' | Prox. exp: ' + info.expiryDate.toLocaleDateString('pt-BR') : '';
-
-  return '<div style="display:flex;align-items:flex-start;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:' + c.bg + ';border:1px solid ' + c.border + (info.status==='critical'||info.status==='expired'?';animation:pulse 1.5s infinite':'') + '"><span style="font-size:14px;flex-shrink:0;margin-top:2px">' + c.icon + '</span><div><div style="font-size:14px;font-weight:700;color:' + c.text + '">' + info.message + '</div><div style="font-size:11px;color:var(--text-secondary);margin-top:3px">Validade: ' + rules.months + 'm' + renewLabel + dateLabel + '</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px">' + rules.tip + '</div>' + clubHTML + '</div></div>';
-}
-
-</script>
-</body>
-</html>
+  const monthKey = now.getFullYear
