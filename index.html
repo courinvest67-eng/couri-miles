@@ -4072,6 +4072,7 @@ function renderAdmin() {
         <div style="font-size:12px;font-weight:600;color:var(--text-primary)">${u.displayName||'—'}</div>
         <div style="font-size:10px;color:var(--text-muted)">${u.email||u.uid}</div>
       </td>
+      <td><span class="plan-badge plan-badge-${u.data&&u.data._plan?u.data._plan:'free'}" style="font-size:9px">${(u.data&&u.data._plan?u.data._plan:'free').toUpperCase()}</span>${u.data&&u.data._planExpiry?'<div style="font-size:8px;color:var(--text-dim);margin-top:2px">até '+new Date(u.data._planExpiry).toLocaleDateString('pt-BR')+'</div>':''}</td>
       <td class="mono" style="font-size:12px;font-weight:700;color:#f5c518">${fMiles(balance)}</td>
       <td class="mono" style="font-size:11px">${txCount}</td>
       <td class="mono" style="font-size:11px">${recurring}</td>
@@ -4081,7 +4082,7 @@ function renderAdmin() {
       </td>
     </tr>
     <tr id="admin-detail-${i}" style="display:none">
-      <td colspan="6" style="padding:12px;background:rgba(0,0,0,0.2);border-radius:8px">
+      <td colspan="7" style="padding:12px;background:rgba(0,0,0,0.2);border-radius:8px">
         <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">SALDOS POR PROGRAMA</div>
         <div style="font-size:11px;color:var(--text-secondary)">${programs||'Nenhum saldo'}</div>
       </td>
@@ -4123,7 +4124,7 @@ function renderAdmin() {
       <div style="overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Usuário</th><th>Saldo Total</th><th>Movim.</th><th>Recorrentes</th><th>Última Mov.</th><th></th>
+            <th>Usuário</th><th>Plano</th><th>Saldo Total</th><th>Movim.</th><th>Recorrentes</th><th>Última Mov.</th><th></th>
           </tr></thead>
           <tbody>${userRows}</tbody>
         </table>
