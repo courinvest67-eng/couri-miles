@@ -1096,15 +1096,39 @@ function renderSimulator() {
           </div>
           <div style="width:100px">
             <label class="form-label">Trecho</label>
-            <select class="form-input" id="sim-trip" style="padding:10px 6px" onchange="simCalc()">
+            <select class="form-input" id="sim-trip" style="padding:10px 6px" onchange="simCalc();simToggleDates()">
               <option value="ida">Só ida</option>
               <option value="idavolta">Ida+volta</option>
             </select>
           </div>
         </div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1">
+            <label class="form-label">Data ida</label>
+            <input type="date" class="form-input" id="sim-date-ida" style="padding:10px 8px">
+          </div>
+          <div style="flex:1" id="sim-date-volta-wrap">
+            <label class="form-label">Data volta</label>
+            <input type="date" class="form-input" id="sim-date-volta" style="padding:10px 8px">
+          </div>
+        </div>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:12px">
+
+        <!-- LINKS RÁPIDOS -->
+        <div style="background:rgba(6,9,26,0.4);border:1px solid var(--border);border-radius:14px;padding:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:10px">🔍 Consultar preço em milhas nos programas</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <a onclick="this.href=getSimSearchUrl('smiles')" href="https://www.smiles.com.br/emissao-com-milhas" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1px solid #FF660033;background:#FF660011;color:#FF9100;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor='#FF6600'" onmouseout="this.style.borderColor='#FF660033'">🔶 Smiles</a>
+            <a onclick="this.href=getSimSearchUrl('tudoazul')" href="https://www.voeazul.com.br/tudoazul/resgate" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1px solid #003DA533;background:#003DA511;color:#2979FF;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor='#003DA5'" onmouseout="this.style.borderColor='#003DA533'">🔵 TudoAzul</a>
+            <a onclick="this.href=getSimSearchUrl('latampass')" href="https://latampass.latam.com/pt_br/use-points" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1px solid #ED1C2433;background:#ED1C2411;color:#FF5252;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor='#ED1C24'" onmouseout="this.style.borderColor='#ED1C2433'">🔴 LATAM Pass</a>
+            <a onclick="this.href=getSimSearchUrl('livelo')" href="https://www.livelo.com.br/viagens-passagens-aereas" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1px solid #E4002B33;background:#E4002B11;color:#FF1744;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor='#E4002B'" onmouseout="this.style.borderColor='#E4002B33'">❤ Livelo</a>
+            <a onclick="this.href=getSimSearchUrl('allaccor')" href="https://all.accor.com/loyalty-program/index.pt-br.shtml" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1px solid #1B146433;background:#1B146411;color:#3D5AFE;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor='#1B1464'" onmouseout="this.style.borderColor='#1B146433'">🏨 ALL Accor</a>
+            <a onclick="this.href=getSimSearchUrl('google')" href="https://www.google.com/travel/flights" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1px solid #22c99733;background:#22c99711;color:#22c997;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit;transition:all 0.2s" onmouseover="this.style.borderColor='#22c997'" onmouseout="this.style.borderColor='#22c99733'">✈ Google Flights</a>
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:8px">Preencha origem, destino e datas acima. Ao clicar, o site abre para você consultar o preço em milhas.</div>
+        </div>
 
         <!-- DINHEIRO -->
         <div style="background:rgba(6,9,26,0.6);border:1px solid var(--border);border-radius:14px;padding:14px">
@@ -1168,6 +1192,41 @@ function renderSimulator() {
     <!-- RESULTS -->
     <div id="sim-results"></div>
   </div>`;
+}
+
+function simToggleDates() {
+  var trip = document.getElementById('sim-trip')?.value || 'ida';
+  var voltaWrap = document.getElementById('sim-date-volta-wrap');
+  if(voltaWrap) voltaWrap.style.display = trip==='idavolta' ? '' : 'none';
+}
+
+function getSimSearchUrl(program) {
+  var origin = (document.getElementById('sim-origin')?.value||'').toUpperCase().trim();
+  var dest = (document.getElementById('sim-dest')?.value||'').toUpperCase().trim();
+  var dateIda = document.getElementById('sim-date-ida')?.value||'';
+  var dateVolta = document.getElementById('sim-date-volta')?.value||'';
+  var trip = document.getElementById('sim-trip')?.value||'ida';
+
+  var urls = {
+    smiles: 'https://www.smiles.com.br/emissao-com-milhas',
+    tudoazul: 'https://www.voeazul.com.br/tudoazul/resgate',
+    latampass: 'https://latampass.latam.com/pt_br/use-points',
+    livelo: 'https://www.livelo.com.br/viagens-passagens-aereas',
+    allaccor: 'https://all.accor.com/loyalty-program/index.pt-br.shtml',
+    google: 'https://www.google.com/travel/flights'
+  };
+
+  // Build Google Flights URL with params if available
+  if(program === 'google' && origin && dest) {
+    var gUrl = 'https://www.google.com/travel/flights?q=Flights';
+    if(origin) gUrl += ' from ' + origin;
+    if(dest) gUrl += ' to ' + dest;
+    if(dateIda) gUrl += ' on ' + dateIda;
+    if(trip==='idavolta' && dateVolta) gUrl += ' return ' + dateVolta;
+    return gUrl;
+  }
+
+  return urls[program] || '#';
 }
 
 function simUpdateRow(id, field, value) {
@@ -5885,133 +5944,4 @@ function renderConsultor() {
     'Devo vender ou usar minhas milhas?',
     'Qual programa tem melhor custo-benefício?',
     'Como funciona o simulador?',
-    'Quando transferir com bônus?',
-    'Análise do meu portfólio',
-    'Como importar meu extrato?',
-  ];
-
-  const suggestionsHTML = consultorHistory.length === 0 ? `
-    <div class="chat-suggestions">
-      ${suggestions.map(function(s){ return '<button class="chat-suggestion" onclick="sendConsultorFromSuggestion(this)" data-msg="'+s+'">'+s+'</button>'; }).join('')}
-    </div>` : '';
-
-  return `<div style="display:flex;flex-direction:column;gap:14px">
-    <div class="card" style="border-top:3px solid #c084fc;padding:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <div style="font-size:16px;font-weight:800;color:var(--text-primary)">💬 Consultor de Milhas IA</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${consultorHistory.length>0?'<button onclick="consultorHistory=[];render()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);cursor:pointer;padding:4px 10px;font-size:10px;font-family:inherit">🗑 Limpar</button>':''}
-          <span class="plan-badge plan-badge-premium">PREMIUM</span>
-        </div>
-      </div>
-      <div class="chat-counter">${remaining} mensagens restantes este mês (${used}/${CONSULTOR_MONTHLY_LIMIT} usadas)</div>
-
-      <div class="chat-container">
-        <div class="chat-messages" id="chat-messages">
-          ${messagesHTML}
-        </div>
-        ${suggestionsHTML}
-        <div class="chat-input-bar">
-          <textarea class="chat-input" id="chat-input" placeholder="${remaining>0?'Pergunte sobre suas milhas...':'Limite mensal atingido. Renova no próximo mês.'}" rows="1" ${remaining<=0?'disabled':''} onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendConsultorMessage()}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
-          <button class="chat-send-btn" onclick="sendConsultorMessage()" ${remaining<=0||consultorSending?'disabled':''}>➤</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function escapeHTML(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function formatConsultorResponse(text) {
-  // Convert markdown-like formatting to HTML
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.06);padding:1px 4px;border-radius:4px;font-size:12px">$1</code>')
-    .replace(/^• /gm, '• ')
-    .replace(/\n/g, '<br>');
-}
-
-function sendConsultorFromSuggestion(btn) {
-  var msg = btn.getAttribute('data-msg');
-  if(msg) {
-    document.getElementById('chat-input').value = msg;
-    sendConsultorMessage();
-  }
-}
-
-async function sendConsultorMessage() {
-  if(consultorSending) return;
-  var inputEl = document.getElementById('chat-input');
-  if(!inputEl) return;
-  var msg = inputEl.value.trim();
-  if(!msg) return;
-
-  if(!canSendConsultorMsg()) {
-    showToast('warning', 'Limite atingido', 'Você usou todas as ' + CONSULTOR_MONTHLY_LIMIT + ' mensagens deste mês. Renova automaticamente no próximo mês.');
-    return;
-  }
-
-  // Add user message
-  consultorHistory.push({ role: 'user', content: msg });
-  inputEl.value = '';
-  inputEl.style.height = 'auto';
-  consultorSending = true;
-  render();
-
-  // Scroll to bottom
-  setTimeout(function() {
-    var chatEl = document.getElementById('chat-messages');
-    if(chatEl) chatEl.scrollTop = chatEl.scrollHeight;
-  }, 100);
-
-  try {
-    // Build messages array for API
-    var apiMessages = consultorHistory.map(function(m) {
-      return { role: m.role, content: m.content };
-    });
-
-    var response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: buildConsultorSystemPrompt(),
-        messages: apiMessages
-      })
-    });
-
-    if(!response.ok) {
-      var errData = await response.json().catch(function(){return {};});
-      throw new Error(errData.error?.message || 'Erro na API (status ' + response.status + ')');
-    }
-
-    var data = await response.json();
-    var aiText = data.content.map(function(c) { return c.type === 'text' ? c.text : ''; }).join('');
-
-    if(!aiText) aiText = 'Desculpe, não consegui processar sua pergunta. Tente reformular.';
-
-    consultorHistory.push({ role: 'assistant', content: aiText });
-    incrementConsultorMsg();
-
-  } catch(err) {
-    console.error('Consultor error:', err);
-    consultorHistory.push({ role: 'assistant', content: '⚠️ **Erro ao conectar com o consultor.** ' + (err.message || '') + '\n\nTente novamente em alguns instantes. Se o problema persistir, verifique sua conexão.' });
-  }
-
-  consultorSending = false;
-  render();
-
-  // Scroll to bottom after render
-  setTimeout(function() {
-    var chatEl = document.getElementById('chat-messages');
-    if(chatEl) chatEl.scrollTop = chatEl.scrollHeight;
-  }, 150);
-}
-
-</script>
-</body>
-</html>
+    'Quan
