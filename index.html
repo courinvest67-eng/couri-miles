@@ -320,6 +320,7 @@
     .form-grid { grid-template-columns: 1fr; }
     .header h1 { font-size: 16px; }
   }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.7}}
 </style>
 </head>
 <body>
@@ -908,6 +909,7 @@ function renderPrograms(m) {
         <div class="mono" style="font-size:18px;font-weight:800;color:#8b5cf6">${fCur(getPortfolioValue(p.id))}</div>
       </div>
       ${sparkSVG(sparkData,p.accent)}
+      ${getExpiryBadgeHTML(p.id)}
       ${(p.id==='latampass'||p.id==='smiles'||p.id==='tudoazul') && pm.balance>0 ? `
       <a href="https://www.maxmilhas.com.br/vender-milhas" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;margin-top:8px;border-radius:10px;background:linear-gradient(135deg,#22c99715,#10b98110);border:1px solid #22c99733;color:#22c997;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit">
         💰 Vender milhas ${p.name} na MaxMilhas
@@ -6172,6 +6174,95 @@ async function adminAddTransaction(uid, shortId) {
     milesEl.value = ''; costEl.value = ''; descEl.value = '';
     loadAdminUsers();
   } catch(e) { showToast('error','Erro','Falha: '+e.message); }
+}
+
+
+// ===== MILES EXPIRATION INFO =====
+const MILES_EXPIRY_RULES = {
+  livelo: { months: 24, rule: 'Pontos expiram em 24 meses se nao houver movimentacao (acumulo ou resgate). Clube Livelo mantem pontos ativos.', renewable: true, tip: 'Qualquer acumulo ou resgate renova a validade de TODOS os pontos.' },
+  smiles: { months: 36, rule: 'Milhas expiram em 36 meses apos o acumulo. Milhas do cartao GOL Smiles nao expiram enquanto o cartao estiver ativo.', renewable: false, tip: 'Cada lote tem validade propria. Milhas mais antigas vencem primeiro (FIFO).' },
+  tudoazul: { months: 24, rule: 'Pontos expiram em 24 meses se nao houver movimentacao. Membros Diamante e superiores tem pontos que nao expiram.', renewable: true, tip: 'Acumule ou resgate periodicamente para manter todos os pontos ativos.' },
+  latampass: { months: 24, rule: 'Pontos LATAM Pass expiram em 24 meses sem movimentacao na conta. Qualquer atividade renova a validade.', renewable: true, tip: 'Um simples acumulo via cartao de credito ja renova todos os pontos.' },
+  esfera: { months: 0, rule: 'Pontos Esfera nao expiram enquanto o cartao Santander estiver ativo.', renewable: false, tip: 'Mantenha seu cartao Santander ativo para manter os pontos.' },
+  c6atomos: { months: 0, rule: 'Atomos C6 Bank nao expiram enquanto a conta C6 estiver ativa.', renewable: false, tip: 'Seus atomos estao seguros enquanto sua conta C6 existir.' },
+  interloop: { months: 12, rule: 'Pontos Inter Loop expiram em 12 meses apos o acumulo.', renewable: false, tip: 'Planeje resgates antes do vencimento. Pontos mais antigos vencem primeiro.' },
+  allaccor: { months: 12, rule: 'Pontos ALL Accor expiram 12 meses apos o acumulo se nao houver atividade no programa (hospedagem, acumulo ou resgate).', renewable: true, tip: 'Uma hospedagem ou transacao renova a validade de todos os pontos.' },
+};
+
+function getExpiryInfo(programId) {
+  var rules = MILES_EXPIRY_RULES[programId];
+  if(!rules) return null;
+  
+  var balance = state.balances[programId] || 0;
+  if(balance <= 0) return { rules: rules, status: 'empty', message: 'Sem saldo', daysLeft: null };
+
+  // Find the last transaction date for this program
+  var lastTx = null;
+  for(var i = 0; i < state.transactions.length; i++) {
+    var t = state.transactions[i];
+    if(t.program === programId) {
+      lastTx = t.date;
+      break;
+    }
+  }
+
+  if(!lastTx) return { rules: rules, status: 'unknown', message: 'Sem dados de movimentacao', daysLeft: null };
+
+  if(rules.months === 0) return { rules: rules, status: 'safe', message: 'Nao expiram', daysLeft: null };
+
+  var lastDate = new Date(lastTx + 'T12:00:00');
+  var expiryDate = new Date(lastDate);
+  expiryDate.setMonth(expiryDate.getMonth() + rules.months);
+  
+  var now = new Date();
+  var daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+  var status = 'safe';
+  var message = '';
+
+  if(daysLeft <= 0) {
+    status = 'expired';
+    message = 'Milhas podem ter expirado!';
+  } else if(daysLeft <= 30) {
+    status = 'critical';
+    message = 'Expiram em ' + daysLeft + ' dias!';
+  } else if(daysLeft <= 90) {
+    status = 'warning';
+    message = 'Expiram em ' + daysLeft + ' dias';
+  } else {
+    status = 'safe';
+    message = 'Validas ate ' + expiryDate.toLocaleDateString('pt-BR');
+  }
+
+  return { rules: rules, status: status, message: message, daysLeft: daysLeft, expiryDate: expiryDate, lastTxDate: lastDate };
+}
+
+function getExpiryBadgeHTML(programId) {
+  var info = getExpiryInfo(programId);
+  if(!info || info.status === 'empty') return '';
+
+  var rules = info.rules;
+  
+  if(rules.months === 0) {
+    return '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(34,201,151,0.06);border:1px solid rgba(34,201,151,0.15)"><span style="font-size:14px">&#x2705;</span><div><div style="font-size:11px;font-weight:700;color:#22c997">Nao expiram</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">' + rules.tip + '</div></div></div>';
+  }
+
+  if(info.status === 'unknown') {
+    return '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15)"><span style="font-size:14px">&#x2139;&#xFE0F;</span><div><div style="font-size:11px;font-weight:600;color:#3b82f6">Validade: ' + rules.months + ' meses ' + (rules.renewable ? '(renovavel)' : '(por lote)') + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">' + rules.tip + '</div></div></div>';
+  }
+
+  var colors = {
+    expired: { bg: 'rgba(240,70,90,0.08)', border: 'rgba(240,70,90,0.25)', text: '#f0465a', icon: '&#x1F6A8;' },
+    critical: { bg: 'rgba(240,70,90,0.08)', border: 'rgba(240,70,90,0.25)', text: '#f0465a', icon: '&#x26A0;&#xFE0F;' },
+    warning: { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)', text: '#f59e0b', icon: '&#x23F3;' },
+    safe: { bg: 'rgba(34,201,151,0.06)', border: 'rgba(34,201,151,0.15)', text: '#22c997', icon: '&#x2705;' },
+  };
+  var c = colors[info.status] || colors.safe;
+
+  var renewLabel = rules.renewable ? ' (renovavel com movimentacao)' : ' (por lote - FIFO)';
+  var dateLabel = info.expiryDate ? ' | Prox. exp: ' + info.expiryDate.toLocaleDateString('pt-BR') : '';
+
+  return '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:' + c.bg + ';border:1px solid ' + c.border + (info.status==='critical'||info.status==='expired'?';animation:pulse 1.5s infinite':'') + '"><span style="font-size:14px">' + c.icon + '</span><div><div style="font-size:11px;font-weight:700;color:' + c.text + '">' + info.message + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">Validade: ' + rules.months + 'm' + renewLabel + dateLabel + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:1px">' + rules.tip + '</div></div></div>';
 }
 
 </script>
