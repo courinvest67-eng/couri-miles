@@ -343,9 +343,7 @@
           <label style="font-size:11px;color:#5a6577;font-weight:600;display:block;margin-bottom:6px;letter-spacing:0.2px">Senha</label>
          <div style="position:relative"><input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')authLogin()" style="width:100%;padding:13px 42px 13px 16px;background:rgba(6,9,26,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:14px;color:#eef0f6;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;box-sizing:border-box;transition:all 0.25s ease;box-shadow:inset 0 2px 4px rgba(0,0,0,0.3)" onfocus="this.style.borderColor='#f5c518'" onblur="this.style.borderColor='rgba(255,255,255,0.07)'"><button type="button" onclick="var p=document.getElementById('auth-pass');if(p.type==='password'){p.type='text';this.textContent='🙈'}else{p.type='password';this.textContent='👁'}" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#556177;font-size:16px;cursor:pointer;padding:4px">👁</button></div>
         </div>
-                <div style="text-align:right;margin-top:-10px;margin-bottom:12px">
-          <button onclick="showForgotPassword()" style="background:none;border:none;color:#3b82f6;font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Esqueceu a senha?</button>
-        </div>
+        <div style="text-align:right;margin-top:-10px;margin-bottom:12px"><button onclick="showForgotPassword()" style="background:none;border:none;color:#3b82f6;font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Esqueceu a senha?</button></div>
         <div id="auth-error" style="display:none;padding:10px 14px;background:rgba(240,70,90,0.08);border:1px solid rgba(240,70,90,0.2);border-radius:10px;color:#f0465a;font-size:12px;margin-bottom:16px"></div>
         <button onclick="authLogin()" style="width:100%;padding:14px;border-radius:16px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 20px rgba(245,197,24,0.3),inset 0 1px 0 rgba(255,255,255,0.3);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)" onmouseover="this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform=''">Entrar</button>
         <button onclick="showRegisterView()" style="width:100%;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#9ba4b8;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.3s ease;backdrop-filter:blur(10px)" onmouseover="this.style.borderColor='rgba(255,255,255,0.15)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">Criar conta</button>
@@ -377,9 +375,6 @@
         <button onclick="authRegister()" style="width:100%;padding:14px;border-radius:16px;border:none;background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 20px rgba(26,111,181,0.3),inset 0 1px 0 rgba(255,255,255,0.15);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)" onmouseover="this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform=''">Criar minha conta</button>
         <button onclick="showLoginView()" style="width:100%;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#9ba4b8;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.3s ease" onmouseover="this.style.borderColor='rgba(255,255,255,0.15)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">← Voltar ao login</button>
       </div>
-        <div style="text-align:center;margin-top:10px">
-          <button onclick="showTermsModal('view')" style="background:none;border:none;color:#3b82f6;font-size:10px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-decoration:underline">Termos de Uso e Política de Privacidade</button>
-        </div>
     </div>
     <div id="auth-loading" style="display:none;text-align:center;padding:24px;color:#5a6577;font-size:13px">
       <div style="margin-bottom:8px;font-size:24px">⏳</div>Carregando seus dados...
@@ -536,10 +531,7 @@ async function saveToCloud() {
     data._displayName = currentUser.displayName||currentUser.email||'';
     data._lastActive = new Date().toISOString();
     await db.collection('users').doc(currentUser.uid).set(data);
-  }catch(e){
-    console.error('Cloud save:',e);
-    if(typeof showToast==='function') showToast('error','Erro ao salvar na nuvem','Verifique sua conexão.');
-  }
+  }catch(e){console.error('Cloud save:',e);}
 }
 
 // ===== DATA =====
@@ -797,9 +789,9 @@ function render() {
   else if(activeTab==='programs') content.innerHTML = renderPrograms(m);
   else if(activeTab==='history') content.innerHTML = renderHistory(m);
   else if(activeTab==='analytics') content.innerHTML = renderAnalytics(m);
-  else if(activeTab==='simulator') content.innerHTML = renderPaywalledContent('simulator', function(){ return renderSimulator(m); });
-  else if(activeTab==='promos') content.innerHTML = renderPaywalledContent('promos', function(){ return renderPromos(); });
-  else if(activeTab==='reports') content.innerHTML = renderPaywalledContent('reports', function(){ return renderReports(m); });
+  else if(activeTab==='simulator') content.innerHTML = renderSimulator(m);
+  else if(activeTab==='promos') content.innerHTML = renderPromos();
+  else if(activeTab==='reports') content.innerHTML = renderReports(m);
   else if(activeTab==='consultor') content.innerHTML = renderConsultor();
   else if(activeTab==='plans') content.innerHTML = renderPlans();
   else if(activeTab==='sync') { try { content.innerHTML = renderSync(m); } catch(e) { content.innerHTML = '<div class="card">Erro ao renderizar Contas: '+e.message+'</div>'; console.error('renderSync error:',e); } }
@@ -929,9 +921,7 @@ function renderHistory() {
   const filters = [`<button class="tab ${filterProgram==='all'?'active':''}" onclick="setFilter('all')">Todos</button>`]
     .concat(PROGRAMS.map(p=>`<button class="tab ${filterProgram===p.id?'active':''}" onclick="setFilter('${p.id}')">${p.name}</button>`)).join('');
 
-  const txs = renderHistoryFiltered();
-  const filteredCount = txs.length;
-  const totalCount = state.transactions.length;
+  const txs = filterProgram==='all' ? state.transactions : state.transactions.filter(t=>t.program===filterProgram);
   const rows = txs.map(tx=>{
     const prog=PROGRAMS.find(p=>p.id===tx.program);
     const valCol = tx.type==='venda'?'#22c997':tx.cost>0?'#f0465a':'var(--text-dim)';
@@ -980,35 +970,11 @@ function renderHistory() {
   }).join('');
 
   return `<div style="display:flex;flex-direction:column;gap:12px">
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-        <div class="filter-row" style="margin:0">${filters}</div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <div class="search-bar" style="min-width:160px">
-            <span style="color:var(--text-dim);font-size:14px">🔍</span>
-            <input type="text" placeholder="Buscar..." value="${historySearch}" oninput="setHistorySearch(this.value)">
-            ${historySearch?'<button onclick="historySearch=\'\';render()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px">✕</button>':''}
-          </div>
-          <button class="pill" style="background:#3b82f6" onclick="document.getElementById('import-file-input').click()">📂 Importar</button>
-          <input type="file" id="import-file-input" accept=".pdf,.xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-        <select class="form-input" style="width:auto;padding:5px 8px;font-size:10px" onchange="setHistoryTypeFilter(this.value)">
-          <option value="" ${!historyTypeFilter?'selected':''}>Todos os tipos</option>
-          ${Object.entries(TYPE_LABELS).map(([k,v])=>`<option value="${k}" ${historyTypeFilter===k?'selected':''}>${v}</option>`).join('')}
-        </select>
-        <input type="date" class="form-input" style="width:auto;padding:5px 8px;font-size:10px" value="${historyDateFrom}" onchange="setHistoryDateFrom(this.value)" placeholder="De">
-        <span style="color:var(--text-dim);font-size:10px">a</span>
-        <input type="date" class="form-input" style="width:auto;padding:5px 8px;font-size:10px" value="${historyDateTo}" onchange="setHistoryDateTo(this.value)" placeholder="Até">
-        <select class="form-input" style="width:auto;padding:5px 8px;font-size:10px" onchange="setHistorySort(this.value)">
-          <option value="date-desc" ${historySortBy==='date-desc'?'selected':''}>Recentes</option>
-          <option value="date-asc" ${historySortBy==='date-asc'?'selected':''}>Antigos</option>
-          <option value="miles-desc" ${historySortBy==='miles-desc'?'selected':''}>+Milhas</option>
-          <option value="value-desc" ${historySortBy==='value-desc'?'selected':''}>+Valor</option>
-        </select>
-        ${(historySearch||historyTypeFilter||historyDateFrom||historyDateTo||historySortBy!=='date-desc')?'<button onclick="clearHistoryFilters()" style="background:none;border:1px solid #f0465a44;border-radius:6px;color:#f0465a;cursor:pointer;padding:3px 8px;font-size:9px;font-family:inherit">✕ Limpar</button>':''}
-        <span style="font-size:9px;color:var(--text-dim);margin-left:auto">${filteredCount}/${totalCount}</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div class="filter-row" style="margin:0">${filters}</div>
+      <div style="display:flex;gap:6px">
+        <button class="pill" style="background:#3b82f6" onclick="document.getElementById('import-file-input').click()">📂 Importar Extrato</button>
+        <input type="file" id="import-file-input" accept=".pdf,.xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
       </div>
     </div>
     <div id="import-preview-area"></div>
@@ -1930,171 +1896,74 @@ function printReport() {
       .footer{margin-top:32px;font-size:10px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:12px}
       @media print{body{padding:16px}}
     
-  /* ===== TOAST NOTIFICATIONS ===== */
-  .toast-container {
-    position: fixed; bottom: 20px; right: 20px; z-index: 3000;
-    display: flex; flex-direction: column-reverse; gap: 8px;
-    pointer-events: none; max-width: 380px; width: calc(100% - 40px);
-  }
-  .toast {
-    pointer-events: all;
-    background: rgba(10,16,36,0.95);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px; padding: 14px 18px;
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
-    display: flex; align-items: center; gap: 12px;
-    animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative; overflow: hidden;
-  }
-  .toast.toast-out { animation: toastOut 0.3s ease forwards; }
-  .toast-icon { font-size: 18px; flex-shrink: 0; }
-  .toast-body { flex: 1; min-width: 0; }
-  .toast-title { font-size: 12px; font-weight: 700; color: var(--text-primary); }
-  .toast-msg { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-  .toast-close { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 2px; flex-shrink: 0; }
-  .toast-progress { position: absolute; bottom: 0; left: 0; height: 3px; border-radius: 0 0 14px 14px; }
-  .toast-success { border-left: 3px solid #22c997; }
-  .toast-success .toast-progress { background: #22c997; animation: toastProgress 3.5s linear forwards; }
-  .toast-error { border-left: 3px solid #f0465a; }
-  .toast-error .toast-progress { background: #f0465a; animation: toastProgress 3.5s linear forwards; }
-  .toast-info { border-left: 3px solid #3b82f6; }
-  .toast-info .toast-progress { background: #3b82f6; animation: toastProgress 3.5s linear forwards; }
-  .toast-warning { border-left: 3px solid #f5c518; }
-  .toast-warning .toast-progress { background: #f5c518; animation: toastProgress 3.5s linear forwards; }
-  @keyframes toastIn { from { opacity:0; transform:translateX(100px) scale(0.9); } to { opacity:1; transform:translateX(0) scale(1); } }
-  @keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(100px); } }
-  @keyframes toastProgress { from { width:100%; } to { width:0%; } }
-
-  /* ===== ONBOARDING ===== */
-  .onboarding-overlay {
-    position: fixed; inset: 0; background: rgba(6,9,26,0.97);
-    z-index: 2500; display: flex; align-items: center; justify-content: center;
-    padding: 20px; animation: overlayIn 0.3s ease;
-  }
-  .onboarding-card {
-    background: rgba(10,16,36,0.95); border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 28px; padding: 32px; max-width: 460px; width: 100%;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
-    animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .onboarding-dots { display: flex; justify-content: center; gap: 8px; margin: 24px 0 0; }
-  .onboarding-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.1); transition: all 0.3s; }
-  .onboarding-dot.active { background: #f5c518; width: 24px; border-radius: 4px; }
-  .onboarding-prog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
-  .onboarding-prog-item {
-    display: flex; align-items: center; gap: 8px; padding: 10px 12px;
-    border: 2px solid rgba(255,255,255,0.06); border-radius: 12px;
-    cursor: pointer; transition: all 0.25s; background: rgba(255,255,255,0.02);
-  }
-  .onboarding-prog-item:hover { border-color: rgba(255,255,255,0.12); }
-  .onboarding-prog-item.selected { border-color: #f5c518; background: rgba(245,197,24,0.08); }
-
-  /* ===== TERMS MODAL ===== */
-  .terms-modal-body {
-    max-height: 50vh; overflow-y: auto; padding: 16px;
-    background: rgba(0,0,0,0.3); border-radius: 12px; margin: 12px 0;
-    font-size: 11px; color: var(--text-secondary); line-height: 1.8;
-  }
-  .terms-modal-body h4 { font-size: 13px; color: var(--text-primary); margin: 16px 0 8px; }
-  .terms-modal-body h4:first-child { margin-top: 0; }
-
-  /* ===== SEARCH BAR ===== */
-  .search-bar {
-    display: flex; align-items: center; gap: 8px; padding: 8px 14px;
-    background: var(--bg-input); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); transition: all 0.25s;
-  }
-  .search-bar:focus-within { border-color: #f5c518; box-shadow: 0 0 0 3px rgba(245,197,24,0.1); }
-  .search-bar input {
-    flex: 1; background: none; border: none; outline: none;
-    color: var(--text-primary); font-size: 13px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-  .search-bar input::placeholder { color: var(--text-dim); }
-
-  @media (max-width: 640px) {
-    .toast-container { right: 10px; left: 10px; bottom: 10px; width: auto; max-width: none; }
-    .onboarding-card { padding: 24px; border-radius: 22px; }
-  }
-
-
-  /* ===== PLANS & PAYWALL ===== */
-  .plan-badge { display:inline-flex; align-items:center; gap:4px; padding:2px 10px; border-radius:50px; font-size:9px; font-weight:800; letter-spacing:0.5px; }
-  .plan-badge-free { background:rgba(85,97,119,0.2); color:#556177; border:1px solid rgba(85,97,119,0.3); }
-  .plan-badge-trial { background:rgba(59,130,246,0.15); color:#3b82f6; border:1px solid rgba(59,130,246,0.3); }
-  .plan-badge-pro { background:rgba(245,197,24,0.15); color:#f5c518; border:1px solid rgba(245,197,24,0.3); }
-  .plan-badge-premium { background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(245,197,24,0.2)); color:#c084fc; border:1px solid rgba(192,132,252,0.3); }
-
-  .paywall-overlay {
-    position:absolute; inset:0; z-index:10;
-    background:rgba(6,9,26,0.85);
-    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
-    border-radius:inherit;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:24px;
-  }
-  .paywall-overlay .paywall-icon { font-size:36px; margin-bottom:12px; }
-  .paywall-overlay .paywall-title { font-size:15px; font-weight:800; color:var(--text-primary); margin-bottom:6px; }
-  .paywall-overlay .paywall-desc { font-size:11px; color:var(--text-muted); margin-bottom:16px; line-height:1.6; }
-  .paywall-btn {
-    padding:10px 24px; border-radius:14px; border:none;
-    background:linear-gradient(145deg,#f5c518,#d4a910);
-    color:#0a3558; font-size:13px; font-weight:700;
-    cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif;
-    box-shadow:0 4px 16px rgba(245,197,24,0.3);
-    transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  .paywall-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(245,197,24,0.4); }
-
-  .pricing-card {
-    background:var(--bg-card); border:2px solid var(--border);
-    border-radius:20px; padding:24px; text-align:center;
-    transition:all 0.3s ease; position:relative; overflow:hidden;
-  }
-  .pricing-card:hover { border-color:var(--border-hover); transform:translateY(-2px); }
-  .pricing-card.featured { border-color:#f5c518; box-shadow:0 0 30px rgba(245,197,24,0.15); }
-  .pricing-card.featured::before {
-    content:'MAIS POPULAR'; position:absolute; top:12px; right:-28px;
-    background:linear-gradient(135deg,#f5c518,#d4a910); color:#0a3558;
-    font-size:8px; font-weight:800; padding:3px 32px;
-    transform:rotate(45deg); letter-spacing:0.5px;
-  }
-  .pricing-price { font-size:32px; font-weight:800; margin:12px 0 4px; }
-  .pricing-price span { font-size:14px; font-weight:600; color:var(--text-muted); }
-  .pricing-features { text-align:left; margin:16px 0; display:flex; flex-direction:column; gap:8px; }
-  .pricing-feature { font-size:11px; color:var(--text-secondary); display:flex; align-items:center; gap:8px; }
-  .pricing-feature.disabled { color:var(--text-dim); text-decoration:line-through; }
-
-  .plans-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
-  @media (max-width:640px) { .plans-grid { grid-template-columns:1fr; } }
-
-
-  /* ===== AI CONSULTANT CHAT ===== */
-  .chat-container { display:flex; flex-direction:column; height:calc(100vh - 200px); min-height:400px; max-height:700px; }
-  .chat-messages { flex:1; overflow-y:auto; padding:16px 0; display:flex; flex-direction:column; gap:12px; }
-  .chat-bubble { max-width:85%; padding:12px 16px; border-radius:16px; font-size:13px; line-height:1.7; animation:fadeIn 0.3s ease; word-wrap:break-word; }
-  .chat-bubble-user { align-self:flex-end; background:linear-gradient(145deg,#1a6fb5,#0a3558); color:#fff; border-bottom-right-radius:4px; }
-  .chat-bubble-ai { align-self:flex-start; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-secondary); border-bottom-left-radius:4px; }
-  .chat-bubble-ai strong { color:var(--text-primary); }
-  .chat-bubble-system { align-self:center; background:rgba(245,197,24,0.08); border:1px solid rgba(245,197,24,0.15); color:#f5c518; font-size:11px; text-align:center; border-radius:12px; padding:8px 16px; }
-  .chat-input-bar { display:flex; gap:8px; padding:12px 0 0; border-top:1px solid var(--border); }
-  .chat-input { flex:1; padding:12px 16px; background:var(--bg-input); border:1px solid var(--border); border-radius:14px; color:var(--text-primary); font-size:13px; font-family:'Plus Jakarta Sans',sans-serif; outline:none; resize:none; min-height:44px; max-height:120px; transition:border-color 0.25s; }
-  .chat-input:focus { border-color:#f5c518; }
-  .chat-input::placeholder { color:var(--text-dim); }
-  .chat-send-btn { padding:0 18px; border-radius:14px; border:none; background:linear-gradient(145deg,#f5c518,#d4a910); color:#0a3558; font-size:16px; font-weight:700; cursor:pointer; transition:all 0.2s; flex-shrink:0; }
-  .chat-send-btn:hover { transform:scale(1.05); }
-  .chat-send-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
-  .chat-typing { display:flex; gap:4px; align-items:center; padding:8px 16px; }
-  .chat-typing-dot { width:6px; height:6px; border-radius:50%; background:var(--text-muted); animation:typingDot 1.4s infinite; }
-  .chat-typing-dot:nth-child(2) { animation-delay:0.2s; }
-  .chat-typing-dot:nth-child(3) { animation-delay:0.4s; }
-  @keyframes typingDot { 0%,60%,100%{opacity:0.3;transform:translateY(0)} 30%{opacity:1;transform:translateY(-4px)} }
-  .chat-suggestions { display:flex; gap:6px; flex-wrap:wrap; padding:8px 0; }
-  .chat-suggestion { padding:6px 14px; border-radius:50px; border:1px solid var(--border); background:var(--glass); color:var(--text-secondary); font-size:11px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all 0.2s; white-space:nowrap; }
-  .chat-suggestion:hover { border-color:#f5c518; color:#f5c518; background:rgba(245,197,24,0.05); }
-  .chat-counter { font-size:10px; color:var(--text-dim); text-align:center; padding:4px 0; }
+  /* TOAST */
+  .toast-container{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none;max-width:380px;width:calc(100% - 40px)}
+  .toast{pointer-events:all;background:rgba(10,16,36,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px 18px;backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;align-items:center;gap:12px;animation:toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden}
+  .toast.toast-out{animation:toastOut 0.3s ease forwards}
+  .toast-success{border-left:3px solid #22c997}.toast-error{border-left:3px solid #f0465a}.toast-info{border-left:3px solid #3b82f6}.toast-warning{border-left:3px solid #f5c518}
+  .toast-progress{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 14px 14px;animation:toastProgress 3.5s linear forwards}
+  .toast-success .toast-progress{background:#22c997}.toast-error .toast-progress{background:#f0465a}.toast-info .toast-progress{background:#3b82f6}.toast-warning .toast-progress{background:#f5c518}
+  @keyframes toastIn{from{opacity:0;transform:translateX(100px) scale(0.9)}to{opacity:1;transform:translateX(0) scale(1)}}
+  @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100px)}}
+  @keyframes toastProgress{from{width:100%}to{width:0%}}
+  /* ONBOARDING */
+  .onboarding-overlay{position:fixed;inset:0;background:rgba(6,9,26,0.97);z-index:2500;display:flex;align-items:center;justify-content:center;padding:20px;animation:overlayIn 0.3s ease}
+  .onboarding-card{background:rgba(10,16,36,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:28px;padding:32px;max-width:460px;width:100%;box-shadow:0 25px 60px rgba(0,0,0,0.5);animation:modalIn 0.4s cubic-bezier(0.34,1.56,0.64,1)}
+  .onboarding-dots{display:flex;justify-content:center;gap:8px;margin:24px 0 0}
+  .onboarding-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all 0.3s}
+  .onboarding-dot.active{background:#f5c518;width:24px;border-radius:4px}
+  .onboarding-prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
+  .onboarding-prog-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid rgba(255,255,255,0.06);border-radius:12px;cursor:pointer;transition:all 0.25s;background:rgba(255,255,255,0.02)}
+  .onboarding-prog-item:hover{border-color:rgba(255,255,255,0.12)}
+  .onboarding-prog-item.selected{border-color:#f5c518;background:rgba(245,197,24,0.08)}
+  /* TERMS */
+  .terms-modal-body{max-height:50vh;overflow-y:auto;padding:16px;background:rgba(0,0,0,0.3);border-radius:12px;margin:12px 0;font-size:11px;color:var(--text-secondary);line-height:1.8}
+  .terms-modal-body h4{font-size:13px;color:var(--text-primary);margin:16px 0 8px}
+  .terms-modal-body h4:first-child{margin-top:0}
+  /* SEARCH */
+  .search-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);transition:all 0.25s}
+  .search-bar:focus-within{border-color:#f5c518;box-shadow:0 0 0 3px rgba(245,197,24,0.1)}
+  .search-bar input{flex:1;background:none;border:none;outline:none;color:var(--text-primary);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif}
+  .search-bar input::placeholder{color:var(--text-dim)}
+  /* PLANS */
+  .plan-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:50px;font-size:9px;font-weight:800;letter-spacing:0.5px}
+  .plan-badge-free{background:rgba(85,97,119,0.2);color:#556177;border:1px solid rgba(85,97,119,0.3)}
+  .plan-badge-trial{background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)}
+  .plan-badge-pro{background:rgba(245,197,24,0.15);color:#f5c518;border:1px solid rgba(245,197,24,0.3)}
+  .plan-badge-premium{background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(245,197,24,0.2));color:#c084fc;border:1px solid rgba(192,132,252,0.3)}
+  .paywall-overlay{position:absolute;inset:0;z-index:10;background:rgba(6,9,26,0.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .paywall-btn{padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 16px rgba(245,197,24,0.3);transition:all 0.3s}
+  .paywall-btn:hover{transform:translateY(-2px)}
+  .pricing-card{background:var(--bg-card);border:2px solid var(--border);border-radius:20px;padding:24px;text-align:center;transition:all 0.3s;position:relative;overflow:hidden}
+  .pricing-card.featured{border-color:#f5c518;box-shadow:0 0 30px rgba(245,197,24,0.15)}
+  .pricing-card.featured::before{content:'MAIS POPULAR';position:absolute;top:12px;right:-28px;background:linear-gradient(135deg,#f5c518,#d4a910);color:#0a3558;font-size:8px;font-weight:800;padding:3px 32px;transform:rotate(45deg)}
+  .pricing-price{font-size:32px;font-weight:800;margin:12px 0 4px}
+  .pricing-price span{font-size:14px;font-weight:600;color:var(--text-muted)}
+  .pricing-features{text-align:left;margin:16px 0;display:flex;flex-direction:column;gap:8px}
+  .pricing-feature{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
+  .pricing-feature.disabled{color:var(--text-dim);text-decoration:line-through}
+  .plans-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  /* CHAT */
+  .chat-container{display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:400px;max-height:700px}
+  .chat-messages{flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:12px}
+  .chat-bubble{max-width:85%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.7;animation:fadeIn 0.3s ease;word-wrap:break-word}
+  .chat-bubble-user{align-self:flex-end;background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;border-bottom-right-radius:4px}
+  .chat-bubble-ai{align-self:flex-start;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-secondary);border-bottom-left-radius:4px}
+  .chat-bubble-ai strong{color:var(--text-primary)}
+  .chat-input-bar{display:flex;gap:8px;padding:12px 0 0;border-top:1px solid var(--border)}
+  .chat-input{flex:1;padding:12px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:14px;color:var(--text-primary);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;resize:none;min-height:44px;max-height:120px;transition:border-color 0.25s}
+  .chat-input:focus{border-color:#f5c518}
+  .chat-input::placeholder{color:var(--text-dim)}
+  .chat-send-btn{padding:0 18px;border-radius:14px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;flex-shrink:0}
+  .chat-send-btn:disabled{opacity:0.4;cursor:not-allowed}
+  .chat-typing{display:flex;gap:4px;align-items:center;padding:8px 16px}
+  .chat-typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:typingDot 1.4s infinite}
+  .chat-typing-dot:nth-child(2){animation-delay:0.2s}
+  .chat-typing-dot:nth-child(3){animation-delay:0.4s}
+  @keyframes typingDot{0%,60%,100%{opacity:0.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+  .chat-suggestion{padding:6px 14px;border-radius:50px;border:1px solid var(--border);background:var(--glass);color:var(--text-secondary);font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s;white-space:nowrap}
+  .chat-suggestion:hover{border-color:#f5c518;color:#f5c518}
+  @media(max-width:640px){.toast-container{right:10px;left:10px;bottom:10px;width:auto;max-width:none}.onboarding-card{padding:24px;border-radius:22px}.plans-grid{grid-template-columns:1fr}}
 
 </style></head><body>${el.innerHTML}
     <div class="footer">Couri Miles — Relatório gerado em ${new Date().toLocaleString('pt-BR')}</div>
@@ -2322,10 +2191,6 @@ function renderSync() {
       <div id="recurring-list">${renderRecurringList()}</div>
     </div>
 
-    
-    <div style="text-align:center;margin-bottom:14px">
-      <button onclick="showTermsModal('view')" style="background:none;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 20px;color:#3b82f6;font-size:12px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.2s" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">📋 Termos de Uso e Política de Privacidade</button>
-    </div>
     <div class="security-note">
       <p>🔒 Seus dados são armazenados de forma segura no Firebase com criptografia.<br>Nenhuma senha de programa de fidelidade é armazenada pelo Couri Mile$.</p>
     </div>
@@ -2348,8 +2213,6 @@ function updateQuickBalance(progId) {
   input.style.borderColor = '#10b981';
   input.style.boxShadow = '0 0 0 2px rgba(16,185,129,0.2)';
   setTimeout(()=>{ input.style.borderColor = ''; input.style.boxShadow = ''; }, 1500);
-  var prgName = PROGRAMS.find(function(p){return p.id===progId;});
-  showToast('success', 'Saldo atualizado', (prgName?prgName.name:'Programa') + ': ' + fMiles(newBal) + ' milhas');
   render();
 }
 
@@ -3492,13 +3355,11 @@ function submitTransfer() {
   state.balances[toId] = (state.balances[toId]||0) + totalMiles;
 
   saveState(); closeModal(); render();
-  showToast('success', 'Transferência registrada!', fMiles(miles) + ' pts ' + fromProg.name + ' → ' + fMiles(totalMiles) + ' pts ' + toProg.name);
 }
 
 function submitForm() {
   const miles=parseInt(document.getElementById('f-miles').value)||0;
   if(!miles) return;
-  if(!canAddTransaction()) { showToast('warning','Limite atingido','Você atingiu o limite de transações do plano Free. Faça upgrade para continuar.'); closeModal(); switchTab('plans'); return; }
   const cost = formType==='uso' ? (parseFloat(document.getElementById('f-cost-uso')?.value)||0) : (parseFloat(document.getElementById('f-cost').value)||0);
   const program=document.getElementById('f-program').value;
 
@@ -3562,7 +3423,6 @@ function submitForm() {
   if(formType==='compra') state.balances[program]=(state.balances[program]||0)+miles;
   if(formType==='venda'||formType==='uso') state.balances[program]=Math.max(0,(state.balances[program]||0)-miles);
   saveState(); closeModal(); render();
-  showToast('success', 'Movimentação registrada!', TYPE_LABELS[formType] + ' de ' + fMiles(miles) + ' milhas em ' + (PROGRAMS.find(function(p){return p.id===program;})||{name:''}).name);
 }
 
 // ===== EDIT / DELETE =====
@@ -3571,7 +3431,6 @@ function deleteTx(id) {
   state.transactions = state.transactions.filter(t=>t.id!==id);
   recalcBalances();
   saveState(); render();
-  showToast('info', 'Movimentação excluída', 'O saldo foi recalculado.');
 }
 
 function recalcBalances() {
@@ -3761,27 +3620,12 @@ function saveEdit() {
     if(editingType==='uso') { tx.savedValue=costVal; tx.cost=0; }
     else { tx.cost=costVal; tx.savedValue=0; }
     tx.costPerK = tx.miles>0&&costVal>0?(costVal/tx.miles)*1000:0;
-
-    // Update organic/paid status for compra type
-    if(editingType==='compra') {
-      if(costVal > 0) {
-        tx.isOrganic = false;
-        if(!tx.acumuloOrigin || ORGANIC_ORIGINS.includes(tx.acumuloOrigin)) {
-          tx.acumuloOrigin = 'compra_direta';
-        }
-      } else {
-        tx.isOrganic = true;
-        if(!tx.acumuloOrigin || PAID_ORIGINS.includes(tx.acumuloOrigin)) {
-          tx.acumuloOrigin = 'bonus';
-        }
-      }
-    }
+    if(editingType==='compra'){if(costVal>0){tx.isOrganic=false;if(!tx.acumuloOrigin||['cartao','voo','bonus','cashback','parceiros'].indexOf(tx.acumuloOrigin)>=0)tx.acumuloOrigin='compra_direta';}else{tx.isOrganic=true;if(!tx.acumuloOrigin||['compra_direta','clube','turbo'].indexOf(tx.acumuloOrigin)>=0)tx.acumuloOrigin='bonus';}}
   }
 
   recalcBalances();
   editingTxId=null;
   saveState(); closeModal(); render();
-  showToast('success', 'Movimentação atualizada', 'As alterações foram salvas com sucesso.');
 }
 
 // ===== IMPORT =====
@@ -3791,7 +3635,6 @@ let importProgram = 'livelo';
 async function handleImportFile(event) {
   const file = event.target.files[0];
   if(!file) return;
-  if(!canAccessFeature('import') && !isAdmin()) { showToast('warning','Recurso Premium','Importação de extratos disponível nos planos Pro e Premium.'); event.target.value=''; switchTab('plans'); return; }
   event.target.value = '';
 
   const ext = file.name.split('.').pop().toLowerCase();
@@ -4196,8 +4039,7 @@ function confirmImport() {
   importedRows = [];
   var area = document.getElementById('import-preview-area');
   if(area) area.innerHTML = '<div class="card" style="border-left:3px solid #10b981;padding:12px"><span style="color:#10b981;font-weight:600">' + count + ' movimentações importadas com sucesso!</span><br><span style="font-size:11px;color:var(--text-muted)">Os saldos foram preservados. Atualize manualmente na aba Contas se necessário.</span></div>';
-  if(typeof showToast==='function') showToast('success', count + ' movimentações importadas', 'Os dados foram importados com sucesso.');
-    setTimeout(function() { if(area) area.innerHTML = ''; render(); }, 3500);
+  setTimeout(function() { if(area) area.innerHTML = ''; render(); }, 3500);
 }
 
 
@@ -4231,7 +4073,6 @@ function renderAdmin() {
         <div style="font-size:10px;color:var(--text-muted)">${u.email||u.uid}</div>
       </td>
       <td class="mono" style="font-size:12px;font-weight:700;color:#f5c518">${fMiles(balance)}</td>
-      <td><span class="plan-badge plan-badge-${u.data?._plan||'free'}" style="font-size:9px">${(u.data?._plan||'free').toUpperCase()}</span></td>
       <td class="mono" style="font-size:11px">${txCount}</td>
       <td class="mono" style="font-size:11px">${recurring}</td>
       <td style="font-size:10px;color:var(--text-muted)">${lastTx}</td>
@@ -4240,7 +4081,7 @@ function renderAdmin() {
       </td>
     </tr>
     <tr id="admin-detail-${i}" style="display:none">
-      <td colspan="7" style="padding:12px;background:rgba(0,0,0,0.2);border-radius:8px">
+      <td colspan="6" style="padding:12px;background:rgba(0,0,0,0.2);border-radius:8px">
         <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px">SALDOS POR PROGRAMA</div>
         <div style="font-size:11px;color:var(--text-secondary)">${programs||'Nenhum saldo'}</div>
       </td>
@@ -4282,7 +4123,7 @@ function renderAdmin() {
       <div style="overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Usuário</th><th>Saldo Total</th><th>Plano</th><th>Movim.</th><th>Recorrentes</th><th>Última Mov.</th><th></th>
+            <th>Usuário</th><th>Saldo Total</th><th>Movim.</th><th>Recorrentes</th><th>Última Mov.</th><th></th>
           </tr></thead>
           <tbody>${userRows}</tbody>
         </table>
@@ -4408,22 +4249,6 @@ function viewAdminUser(index) {
       ${recHTML}
     </div>
 
-    <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px">
-      <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px">⭐ Gerenciar Plano</div>
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <span style="font-size:11px;color:var(--text-secondary)">Plano atual:</span>
-        <span class="plan-badge ${(function(){var p=u.data?._plan||'free';return 'plan-badge-'+p;})()}" style="font-size:10px">${(u.data?._plan||'free').toUpperCase()}</span>
-        ${u.data?._planExpiry?'<span style="font-size:9px;color:var(--text-dim)">até '+new Date(u.data._planExpiry).toLocaleDateString('pt-BR')+'</span>':''}
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button onclick="adminSetPlan('${u.uid}','pro',1)" style="padding:6px 12px;border-radius:8px;border:1px solid #f5c51844;background:#f5c51811;color:#f5c518;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Pro 1 mês</button>
-        <button onclick="adminSetPlan('${u.uid}','pro',3)" style="padding:6px 12px;border-radius:8px;border:1px solid #f5c51844;background:#f5c51811;color:#f5c518;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Pro 3 meses</button>
-        <button onclick="adminSetPlan('${u.uid}','pro',12)" style="padding:6px 12px;border-radius:8px;border:1px solid #f5c51844;background:#f5c51811;color:#f5c518;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Pro 12 meses</button>
-        <button onclick="adminSetPlan('${u.uid}','premium',1)" style="padding:6px 12px;border-radius:8px;border:1px solid #c084fc44;background:#c084fc11;color:#c084fc;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Premium 1 mês</button>
-        <button onclick="adminRevokePlan('${u.uid}')" style="padding:6px 12px;border-radius:8px;border:1px solid #f0465a44;background:#f0465a11;color:#f0465a;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Revogar → Free</button>
-      </div>
-    </div>
-
     <button onclick="closeModal()" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--glass);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Fechar</button>`;
 }
 
@@ -4546,7 +4371,6 @@ function saveRecurring() {
     lastProcessed: null,
   });
   saveState(); closeModal(); render();
-  showToast('success', 'Recorrente criado!', description + ' — ' + fMiles(miles) + ' pts');
 }
 
 function toggleRecurring(index) {
@@ -4915,8 +4739,6 @@ function applyUserTheme(user) {
       <span style="background:linear-gradient(135deg,#f5c518,#d4a910);color:#0a3558;padding:2px 10px;border-radius:50px;font-size:9px;font-weight:800;letter-spacing:0.5px;box-shadow:0 2px 8px rgba(245,197,24,0.3)">👑 ADMIN</span>
       <span style="color:#f5c518;font-size:10px;font-weight:600">${user.email}</span>
     </span>`;
-    const badgeElAdmin = document.getElementById('header-plan-badge');
-    if(badgeElAdmin) badgeElAdmin.innerHTML = '<span class="plan-badge plan-badge-premium">👑 ADMIN</span>';
 
     // Add gold glow to body
     document.body.style.setProperty('--admin-glow', '1');
@@ -4943,11 +4765,9 @@ function applyUserTheme(user) {
     headerInfo.innerHTML = user ?
       `<span style="font-size:10px;color:var(--text-muted)">${user.email}</span>` :
       'Modo offline — dados salvos localmente';
-
-    // Update plan badge
-    const badgeEl = document.getElementById('header-plan-badge');
-    if(badgeEl && user) badgeEl.innerHTML = getPlanBadgeHTML();
-    else if(badgeEl) badgeEl.innerHTML = '';
+    var _bEl=document.getElementById('header-plan-badge');
+    if(_bEl&&user&&typeof getPlanBadgeHTML==='function')_bEl.innerHTML=getPlanBadgeHTML();
+    else if(_bEl)_bEl.innerHTML='';
 
     const old = document.getElementById('admin-theme-style');
     if(old) old.remove();
@@ -4961,17 +4781,13 @@ function initApp() {
     localStorage.setItem('miles-control-version', APP_VERSION);
     saveState();
   }
-  initUserPlan();
+  if(typeof initUserPlan==='function') initUserPlan();
   processRecurringTransactions();
   renderTabs();
   render();
   maybeAutoFetchEuro();
-  // Show onboarding for new users or promo alert
-  if(shouldShowOnboarding()) {
-    setTimeout(showOnboarding, 500);
-  } else {
-    setTimeout(showPromoAlert, 1500);
-  }
+  // Show promo alert after a short delay
+  if(typeof shouldShowOnboarding==='function' && shouldShowOnboarding()){setTimeout(showOnboarding,500);}else{setTimeout(showPromoAlert,1500);}
 }
 
 if(useFirebase) {
@@ -4983,22 +4799,17 @@ if(useFirebase) {
     currentUser=user;
     const authScreen=document.getElementById('auth-screen');
     if(user){
-      try {
-        document.getElementById('auth-loading').style.display='block';
-        document.getElementById('auth-form').style.display='none';
-        const loaded=await loadFromCloud();
-        if(!loaded) state=defaultState();
-        authScreen.style.display='none';
-        document.querySelector('.header').style.display='';
-        document.getElementById('main-content').style.display='';
-        applyUserTheme(user);
-        initApp();
-      } catch(e) {
-        console.error('Auth init error:', e);
-        alert('Erro ao carregar o app: ' + e.message + '\n\nTente limpar o cache do navegador.');
-        document.getElementById('auth-loading').style.display='none';
-        document.getElementById('auth-form').style.display='block';
-      }
+      try{
+      document.getElementById('auth-loading').style.display='block';
+      document.getElementById('auth-form').style.display='none';
+      const loaded=await loadFromCloud();
+      if(!loaded) state=defaultState();
+      authScreen.style.display='none';
+      document.querySelector('.header').style.display='';
+      document.getElementById('main-content').style.display='';
+      applyUserTheme(user);
+      initApp();
+      }catch(e){console.error('Init error:',e);alert('Erro ao carregar: '+e.message);document.getElementById('auth-loading').style.display='none';document.getElementById('auth-form').style.display='block';}
     } else {
       authScreen.style.display='flex';
       document.querySelector('.header').style.display='none';
@@ -5565,7 +5376,6 @@ function clearHistoryFilters() {
   render();
 }
 
-
 // ===== PLANS & PAYWALL SYSTEM =====
 const PLANS = {
   free:    { id:'free',    name:'Free',    price:0,     badge:'FREE',    badgeClass:'plan-badge-free',    color:'#556177', maxPrograms:3, maxTransactions:30 },
@@ -5838,7 +5648,6 @@ function adminRevokePlan(uid) {
   });
 }
 
-
 // ===== AI CONSULTANT =====
 let consultorHistory = [];
 let consultorSending = false;
@@ -6103,4 +5912,24 @@ async function sendConsultorMessage() {
 
     if(!aiText) aiText = 'Desculpe, não consegui processar sua pergunta. Tente reformular.';
 
-    consultorHistory.push({ role: 'assistant', 
+    consultorHistory.push({ role: 'assistant', content: aiText });
+    incrementConsultorMsg();
+
+  } catch(err) {
+    console.error('Consultor error:', err);
+    consultorHistory.push({ role: 'assistant', content: '⚠️ **Erro ao conectar com o consultor.** ' + (err.message || '') + '\n\nTente novamente em alguns instantes. Se o problema persistir, verifique sua conexão.' });
+  }
+
+  consultorSending = false;
+  render();
+
+  // Scroll to bottom after render
+  setTimeout(function() {
+    var chatEl = document.getElementById('chat-messages');
+    if(chatEl) chatEl.scrollTop = chatEl.scrollHeight;
+  }, 150);
+}
+
+</script>
+</body>
+</html>
