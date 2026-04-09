@@ -4249,6 +4249,23 @@ function viewAdminUser(index) {
       ${recHTML}
     </div>
 
+    <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px">
+      <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px">⭐ Gerenciar Plano</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:11px;color:var(--text-secondary)">Plano atual:</span>
+        <span class="plan-badge plan-badge-${u.data&&u.data._plan?u.data._plan:'free'}" style="font-size:10px">${u.data&&u.data._plan?u.data._plan.toUpperCase():'FREE'}</span>
+        ${u.data&&u.data._planExpiry?'<span style="font-size:9px;color:var(--text-dim)">até '+new Date(u.data._planExpiry).toLocaleDateString('pt-BR')+'</span>':''}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="adminSetPlan('${u.uid}','pro',1)" style="padding:6px 12px;border-radius:8px;border:1px solid #f5c51844;background:#f5c51811;color:#f5c518;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Pro 1 mês</button>
+        <button onclick="adminSetPlan('${u.uid}','pro',3)" style="padding:6px 12px;border-radius:8px;border:1px solid #f5c51844;background:#f5c51811;color:#f5c518;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Pro 3 meses</button>
+        <button onclick="adminSetPlan('${u.uid}','pro',12)" style="padding:6px 12px;border-radius:8px;border:1px solid #f5c51844;background:#f5c51811;color:#f5c518;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Pro 12 meses</button>
+        <button onclick="adminSetPlan('${u.uid}','premium',1)" style="padding:6px 12px;border-radius:8px;border:1px solid #c084fc44;background:#c084fc11;color:#c084fc;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Premium 1 mês</button>
+        <button onclick="adminSetPlan('${u.uid}','premium',3)" style="padding:6px 12px;border-radius:8px;border:1px solid #c084fc44;background:#c084fc11;color:#c084fc;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Premium 3 meses</button>
+        <button onclick="adminRevokePlan('${u.uid}')" style="padding:6px 12px;border-radius:8px;border:1px solid #f0465a44;background:#f0465a11;color:#f0465a;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit">Revogar → Free</button>
+      </div>
+    </div>
+
     <button onclick="closeModal()" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--glass);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Fechar</button>`;
 }
 
@@ -5391,10 +5408,11 @@ const PLAN_FEATURES = {
   premium: { dashboard:true, programs:8, transactions:9999, simulator:true, reports:true, promos:true, recurring:true, import:true, analytics:true, export:true },
 };
 
-const WHATSAPP_NUMBER = '5532988414085'; // CONFIGURE SEU NÚMERO
+const WHATSAPP_NUMBER = '5521999999999'; // CONFIGURE SEU NÚMERO
 
 function getUserPlan() {
   if(!currentUser) return PLANS.free;
+  if(isAdmin()) return PLANS.premium;
   const planId = state._plan || 'free';
   const planExpiry = state._planExpiry ? new Date(state._planExpiry) : null;
   const now = new Date();
