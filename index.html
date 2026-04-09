@@ -4119,7 +4119,7 @@ function renderAdmin() {
 
     return `<div class="card" style="padding:16px;margin-bottom:2px">
       <div style="display:flex;align-items:center;gap:14px;cursor:pointer" onclick="toggleAdminUserDetail(${i})">
-        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,${planId==='premium'?'#c084fc33':'#1a6fb533'},${planId==='pro'?'#f5c51822':'#0a355822'});display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${planId==='premium'?'👑':planId==='pro'?'⭐':planId==='trial'?'🎁':'👤'}</div>
+        <div style="width:48px;height:48px;border-radius:14px;background:${planId==='vip'?'linear-gradient(135deg,#f59e0b,#d97706)':planId==='premium'?'linear-gradient(135deg,#c084fc,#9333ea)':planId==='pro'?'linear-gradient(135deg,#f5c518,#d4a910)':planId==='trial'?'linear-gradient(135deg,#3b82f6,#2563eb)':'linear-gradient(135deg,#556177,#3a4558)'};display:flex;align-items:center;justify-content:center;font-size:${planId==='vip'||planId==='premium'?'18':'16'}px;font-weight:800;color:${planId==='pro'||planId==='vip'?'#0a3558':'#fff'};flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.5px;box-shadow:0 4px 12px ${planId==='vip'?'rgba(245,158,11,0.3)':planId==='premium'?'rgba(192,132,252,0.3)':planId==='pro'?'rgba(245,197,24,0.3)':planId==='trial'?'rgba(59,130,246,0.3)':'rgba(85,97,119,0.2)'}">${planId==='vip'?'VIP':planId==='premium'?'PRE':planId==='pro'?'PRO':planId==='trial'?'TRI':'FREE'}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:15px;font-weight:700;color:var(--text-primary)">${u.displayName||'—'}</div>
           <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${u.email||u.uid}</div>
@@ -4347,7 +4347,7 @@ function viewAdminUser(index) {
       <div>
         <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;font-weight:600">Novo Lancamento</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
-          <select id="admin-tx-type-${u.uid.substring(0,8)}" class="form-input" style="flex:1;padding:7px;font-size:12px;min-width:90px"><option value="compra">Acumulo</option><option value="venda">Venda</option><option value="uso">Resgate</option></select>
+          <select id="admin-tx-type-${u.uid.substring(0,8)}" class="form-input" style="flex:1;padding:7px;font-size:12px;min-width:90px"><option value="compra">Acumulo</option><option value="venda">Venda</option><option value="uso">Resgate</option><option value="transferencia">Transferencia</option></select>
           <select id="admin-tx-prog-${u.uid.substring(0,8)}" class="form-input" style="flex:1;padding:7px;font-size:12px;min-width:100px">${PROGRAMS.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('')}</select>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
@@ -5497,7 +5497,7 @@ function clearHistoryFilters() {
 const PLANS = {
   free:    { id:'free',    name:'Free',    price:0,     badge:'FREE',    badgeClass:'plan-badge-free',    color:'#556177', maxPrograms:3, maxTransactions:30 },
   trial:   { id:'trial',   name:'Trial',   price:0,     badge:'TRIAL 7d',badgeClass:'plan-badge-trial',   color:'#3b82f6', maxPrograms:8, maxTransactions:9999, durationDays:7 },
-  pro:     { id:'pro',     name:'Pro',     price:19.90, badge:'PRO',     badgeClass:'plan-badge-pro',     color:'#f5c518', maxPrograms:8, maxTransactions:9999 },
+  pro:     { id:'pro',     name:'Pro',     price:39.90, badge:'PRO',     badgeClass:'plan-badge-pro',     color:'#f5c518', maxPrograms:8, maxTransactions:9999 },
   premium: { id:'premium', name:'Premium', price:69.90, badge:'PREMIUM', badgeClass:'plan-badge-premium', color:'#c084fc', maxPrograms:8, maxTransactions:9999 },
 };
 
@@ -5632,7 +5632,7 @@ function renderPlans() {
   const trialUsed = !!state._planStarted;
   const isAnnual = planBillingCycle === 'annual';
 
-  const proMonthly = 19.90;
+  const proMonthly = 39.90;
   const premiumMonthly = 69.90;
   const discount = 0.15;
   const proAnnualMonth = Math.round(proMonthly * (1 - discount) * 100) / 100;
