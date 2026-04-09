@@ -6179,14 +6179,14 @@ async function adminAddTransaction(uid, shortId) {
 
 // ===== MILES EXPIRATION INFO =====
 const MILES_EXPIRY_RULES = {
-  livelo: { months: 24, rule: 'Pontos expiram em 24 meses se nao houver movimentacao (acumulo ou resgate). Clube Livelo mantem pontos ativos.', renewable: true, tip: 'Qualquer acumulo ou resgate renova a validade de TODOS os pontos.' },
-  smiles: { months: 36, rule: 'Milhas expiram em 36 meses apos o acumulo. Milhas do cartao GOL Smiles nao expiram enquanto o cartao estiver ativo.', renewable: false, tip: 'Cada lote tem validade propria. Milhas mais antigas vencem primeiro (FIFO).' },
-  tudoazul: { months: 24, rule: 'Pontos expiram em 24 meses se nao houver movimentacao. Membros Diamante e superiores tem pontos que nao expiram.', renewable: true, tip: 'Acumule ou resgate periodicamente para manter todos os pontos ativos.' },
-  latampass: { months: 24, rule: 'Pontos LATAM Pass expiram em 24 meses sem movimentacao na conta. Qualquer atividade renova a validade.', renewable: true, tip: 'Um simples acumulo via cartao de credito ja renova todos os pontos.' },
-  esfera: { months: 0, rule: 'Pontos Esfera nao expiram enquanto o cartao Santander estiver ativo.', renewable: false, tip: 'Mantenha seu cartao Santander ativo para manter os pontos.' },
-  c6atomos: { months: 0, rule: 'Atomos C6 Bank nao expiram enquanto a conta C6 estiver ativa.', renewable: false, tip: 'Seus atomos estao seguros enquanto sua conta C6 existir.' },
-  interloop: { months: 12, rule: 'Pontos Inter Loop expiram em 12 meses apos o acumulo.', renewable: false, tip: 'Planeje resgates antes do vencimento. Pontos mais antigos vencem primeiro.' },
-  allaccor: { months: 12, rule: 'Pontos ALL Accor expiram 12 meses apos o acumulo se nao houver atividade no programa (hospedagem, acumulo ou resgate).', renewable: true, tip: 'Uma hospedagem ou transacao renova a validade de todos os pontos.' },
+  livelo: { months: 24, rule: 'Pontos expiram em 24 meses apos o acumulo.', renewable: false, tip: 'Assinantes do Clube Livelo (qualquer plano) tem pontos que NAO expiram enquanto a assinatura estiver ativa.', club: 'Clube Livelo (qualquer plano)', clubUrl: 'https://www.livelo.com.br/clube' },
+  smiles: { months: 36, rule: 'Milhas expiram conforme a categoria: Diamante 36m, demais 36m apos acumulo.', renewable: false, tip: 'Clube Smiles 7.000/10.000/20.000: milhas NAO expiram. Planos 1.000/2.000/5.000: validade de 10 anos. Cartao GOL Smiles Infinite: milhas do cartao nao expiram.', club: 'Clube Smiles 7K+ ou Cartao Infinite', clubUrl: 'https://www.smiles.com.br/clube-smiles/bem-vindo' },
+  tudoazul: { months: 24, rule: 'Pontos expiram em 24 meses sem movimentacao na conta.', renewable: true, tip: 'Clube Azul 10.000/20.000: pontos NAO expiram com assinatura ativa. Cartao Azul Itau Infinite/Skyline: pontos nao expiram. Qualquer acumulo ou resgate renova a validade.', club: 'Clube Azul 10K/20K ou Cartao Infinite', clubUrl: 'https://www.voeazul.com.br/tudoazul' },
+  latampass: { months: 24, rule: 'Pontos expiram em 24 meses sem movimentacao na conta.', renewable: true, tip: 'Qualquer atividade (acumulo, resgate ou transferencia) renova a validade de todos os pontos. Nao ha clube que elimine a expiracao, mas basta 1 movimentacao para renovar.', club: null, clubUrl: null },
+  esfera: { months: 0, rule: 'Pontos Esfera NAO expiram enquanto o cartao Santander estiver ativo.', renewable: false, tip: 'Mantenha seu cartao Santander ativo. Pontos sao vinculados ao cartao.', club: null, clubUrl: null },
+  c6atomos: { months: 0, rule: 'Atomos C6 Bank NAO expiram enquanto a conta C6 estiver ativa.', renewable: false, tip: 'Seus atomos estao seguros enquanto sua conta C6 Bank existir.', club: null, clubUrl: null },
+  interloop: { months: 12, rule: 'Pontos Inter Loop expiram em 12 meses apos o acumulo.', renewable: false, tip: 'Planeje resgates ou transferencias antes do vencimento. Pontos mais antigos vencem primeiro (FIFO). Nao ha clube que elimine expiracao.', club: null, clubUrl: null },
+  allaccor: { months: 12, rule: 'Pontos ALL expiram 12 meses apos ultima atividade na conta.', renewable: true, tip: 'Status Accor Silver ou superior: pontos NAO expiram. Qualquer hospedagem, acumulo ou resgate renova a validade de todos os pontos.', club: 'ALL Accor Silver+ ou Ibis Business', clubUrl: 'https://all.accor.com/loyalty-program/index.pt-br.shtml' },
 };
 
 function getExpiryInfo(programId) {
@@ -6242,13 +6242,19 @@ function getExpiryBadgeHTML(programId) {
   if(!info || info.status === 'empty') return '';
 
   var rules = info.rules;
+  var clubHTML = '';
+  if(rules.club && rules.clubUrl) {
+    clubHTML = '<div style="margin-top:4px"><a href="'+rules.clubUrl+'" target="_blank" rel="noopener" style="font-size:10px;color:#3b82f6;text-decoration:none;font-weight:600">&#x1F48E; Nao expira com: '+rules.club+' &rarr;</a></div>';
+  } else if(rules.club) {
+    clubHTML = '<div style="font-size:10px;color:#3b82f6;margin-top:4px;font-weight:600">&#x1F48E; Nao expira com: '+rules.club+'</div>';
+  }
   
   if(rules.months === 0) {
     return '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(34,201,151,0.06);border:1px solid rgba(34,201,151,0.15)"><span style="font-size:14px">&#x2705;</span><div><div style="font-size:11px;font-weight:700;color:#22c997">Nao expiram</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">' + rules.tip + '</div></div></div>';
   }
 
   if(info.status === 'unknown') {
-    return '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15)"><span style="font-size:14px">&#x2139;&#xFE0F;</span><div><div style="font-size:11px;font-weight:600;color:#3b82f6">Validade: ' + rules.months + ' meses ' + (rules.renewable ? '(renovavel)' : '(por lote)') + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">' + rules.tip + '</div></div></div>';
+    return '<div style="display:flex;align-items:flex-start;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15)"><span style="font-size:14px">&#x2139;&#xFE0F;</span><div><div style="font-size:11px;font-weight:600;color:#3b82f6">Validade: ' + rules.months + ' meses ' + (rules.renewable ? '(renovavel)' : '(por lote)') + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">' + rules.tip + '</div>' + clubHTML + '</div></div>';
   }
 
   var colors = {
@@ -6262,7 +6268,7 @@ function getExpiryBadgeHTML(programId) {
   var renewLabel = rules.renewable ? ' (renovavel com movimentacao)' : ' (por lote - FIFO)';
   var dateLabel = info.expiryDate ? ' | Prox. exp: ' + info.expiryDate.toLocaleDateString('pt-BR') : '';
 
-  return '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:' + c.bg + ';border:1px solid ' + c.border + (info.status==='critical'||info.status==='expired'?';animation:pulse 1.5s infinite':'') + '"><span style="font-size:14px">' + c.icon + '</span><div><div style="font-size:11px;font-weight:700;color:' + c.text + '">' + info.message + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">Validade: ' + rules.months + 'm' + renewLabel + dateLabel + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:1px">' + rules.tip + '</div></div></div>';
+  return '<div style="display:flex;align-items:flex-start;gap:6px;margin-top:8px;padding:8px 12px;border-radius:10px;background:' + c.bg + ';border:1px solid ' + c.border + (info.status==='critical'||info.status==='expired'?';animation:pulse 1.5s infinite':'') + '"><span style="font-size:14px;flex-shrink:0;margin-top:2px">' + c.icon + '</span><div><div style="font-size:11px;font-weight:700;color:' + c.text + '">' + info.message + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:2px">Validade: ' + rules.months + 'm' + renewLabel + dateLabel + '</div><div style="font-size:9px;color:var(--text-dim);margin-top:1px">' + rules.tip + '</div>' + clubHTML + '</div></div>';
 }
 
 </script>
