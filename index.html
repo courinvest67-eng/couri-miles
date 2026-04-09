@@ -343,6 +343,7 @@
           <label style="font-size:11px;color:#5a6577;font-weight:600;display:block;margin-bottom:6px;letter-spacing:0.2px">Senha</label>
          <div style="position:relative"><input type="password" id="auth-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')authLogin()" style="width:100%;padding:13px 42px 13px 16px;background:rgba(6,9,26,0.8);border:1px solid rgba(255,255,255,0.07);border-radius:14px;color:#eef0f6;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;box-sizing:border-box;transition:all 0.25s ease;box-shadow:inset 0 2px 4px rgba(0,0,0,0.3)" onfocus="this.style.borderColor='#f5c518'" onblur="this.style.borderColor='rgba(255,255,255,0.07)'"><button type="button" onclick="var p=document.getElementById('auth-pass');if(p.type==='password'){p.type='text';this.textContent='🙈'}else{p.type='password';this.textContent='👁'}" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#556177;font-size:16px;cursor:pointer;padding:4px">👁</button></div>
         </div>
+        <div style="text-align:right;margin-top:-10px;margin-bottom:12px"><button onclick="showForgotPassword()" style="background:none;border:none;color:#3b82f6;font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Esqueceu a senha?</button></div>
         <div id="auth-error" style="display:none;padding:10px 14px;background:rgba(240,70,90,0.08);border:1px solid rgba(240,70,90,0.2);border-radius:10px;color:#f0465a;font-size:12px;margin-bottom:16px"></div>
         <button onclick="authLogin()" style="width:100%;padding:14px;border-radius:16px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:10px;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 20px rgba(245,197,24,0.3),inset 0 1px 0 rgba(255,255,255,0.3);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1)" onmouseover="this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform=''">Entrar</button>
         <button onclick="showRegisterView()" style="width:100%;padding:14px;border-radius:16px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#9ba4b8;font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.3s ease;backdrop-filter:blur(10px)" onmouseover="this.style.borderColor='rgba(255,255,255,0.15)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'">Criar conta</button>
@@ -957,7 +958,7 @@ function renderHistory() {
     return `<tr>
       <td class="mono" style="font-size:11px;color:var(--text-secondary)">${fDate(tx.date)}</td>
       <td><span style="display:inline-flex;align-items:center;gap:4px">${logoHTML(prog,20)}<span style="font-size:11px">${prog.name}</span></span></td>
-      <td><span class="badge" style="background:${TYPE_COLORS[tx.type]}">${TYPE_LABELS[tx.type]}</span>${tx.type==='compra'?(tx.isOrganic?'<span style="display:inline-block;margin-left:3px;padding:1px 5px;border-radius:50px;font-size:8px;font-weight:600;background:#10b98118;color:#10b981;border:1px solid #10b98133">grátis</span>':'<span style="display:inline-block;margin-left:3px;padding:1px 5px;border-radius:50px;font-size:8px;font-weight:600;background:#f59e0b18;color:#f59e0b;border:1px solid #f59e0b33">pago</span>'):''}</td>
+      <td><span class="badge" style="background:${TYPE_COLORS[tx.type]}">${TYPE_LABELS[tx.type]}</span>${tx.type==='compra'?((tx.cost<=0)?'<span style="display:inline-block;margin-left:3px;padding:1px 5px;border-radius:50px;font-size:8px;font-weight:600;background:#10b98118;color:#10b981;border:1px solid #10b98133">grátis</span>':'<span style="display:inline-block;margin-left:3px;padding:1px 5px;border-radius:50px;font-size:8px;font-weight:600;background:#f59e0b18;color:#f59e0b;border:1px solid #f59e0b33">pago</span>'):''}</td>
       <td class="mono" style="font-weight:700">${fMiles(tx.miles)}</td>
       <td class="mono" style="color:${valCol}">${val}${discountBadge}${vendaBadge}</td>
       <td class="mono" style="font-size:11px;color:#f5a623">${tx.costPerK>0?'R$'+tx.costPerK.toFixed(2):'—'}</td>
@@ -1101,9 +1102,25 @@ function renderSimulator() {
             </select>
           </div>
         </div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1"><label class="form-label">Data ida</label><input type="date" class="form-input" id="sim-date-ida" style="padding:10px 8px"></div>
+          <div style="flex:1" id="sim-date-volta-wrap"><label class="form-label">Data volta</label><input type="date" class="form-input" id="sim-date-volta" style="padding:10px 8px"></div>
+        </div>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:12px">
+
+        <!-- LINKS -->
+        <div style="background:rgba(6,9,26,0.4);border:1px solid var(--border);border-radius:14px;padding:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:10px">Consultar preco em milhas</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <a href="https://www.smiles.com.br/emissao-com-milhas" target="_blank" rel="noopener" style="padding:7px 14px;border-radius:10px;border:1px solid #FF660033;background:#FF660011;color:#FF9100;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit">Smiles</a>
+            <a href="https://www.voeazul.com.br/tudoazul/resgate" target="_blank" rel="noopener" style="padding:7px 14px;border-radius:10px;border:1px solid #003DA533;background:#003DA511;color:#2979FF;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit">TudoAzul</a>
+            <a href="https://latampass.latam.com/pt_br/use-points" target="_blank" rel="noopener" style="padding:7px 14px;border-radius:10px;border:1px solid #ED1C2433;background:#ED1C2411;color:#FF5252;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit">LATAM Pass</a>
+            <a href="https://www.livelo.com.br/viagens-passagens-aereas" target="_blank" rel="noopener" style="padding:7px 14px;border-radius:10px;border:1px solid #E4002B33;background:#E4002B11;color:#FF1744;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit">Livelo</a>
+            <a href="https://www.google.com/travel/flights" target="_blank" rel="noopener" style="padding:7px 14px;border-radius:10px;border:1px solid #22c99733;background:#22c99711;color:#22c997;font-size:12px;font-weight:700;text-decoration:none;font-family:inherit">Google Flights</a>
+          </div>
+        </div>
 
         <!-- DINHEIRO -->
         <div style="background:rgba(6,9,26,0.6);border:1px solid var(--border);border-radius:14px;padding:14px">
@@ -1894,9 +1911,109 @@ function printReport() {
       .pos{color:#10b981} .neg{color:#ef4444} .neu{color:#f59e0b}
       .footer{margin-top:32px;font-size:10px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:12px}
       @media print{body{padding:16px}}
-    </style></head><body>${el.innerHTML}
+    
+  .toast-container{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none;max-width:380px;width:calc(100% - 40px)}
+  .toast{pointer-events:all;background:rgba(10,16,36,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px 18px;backdrop-filter:blur(30px);box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;align-items:center;gap:12px;animation:toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden}
+  .toast.toast-out{animation:toastOut 0.3s ease forwards}
+  .toast-success{border-left:3px solid #22c997}.toast-error{border-left:3px solid #f0465a}.toast-info{border-left:3px solid #3b82f6}.toast-warning{border-left:3px solid #f5c518}
+  .toast-progress{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 14px 14px;animation:toastProgress 3.5s linear forwards}
+  .toast-success .toast-progress{background:#22c997}.toast-error .toast-progress{background:#f0465a}.toast-info .toast-progress{background:#3b82f6}.toast-warning .toast-progress{background:#f5c518}
+  @keyframes toastIn{from{opacity:0;transform:translateX(100px) scale(0.9)}to{opacity:1;transform:translateX(0) scale(1)}}
+  @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100px)}}
+  @keyframes toastProgress{from{width:100%}to{width:0%}}
+  .plan-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:50px;font-size:9px;font-weight:800;letter-spacing:0.5px}
+  .plan-badge-free{background:rgba(85,97,119,0.2);color:#556177;border:1px solid rgba(85,97,119,0.3)}
+  .plan-badge-trial{background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)}
+  .plan-badge-pro{background:rgba(245,197,24,0.15);color:#f5c518;border:1px solid rgba(245,197,24,0.3)}
+  .plan-badge-premium{background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(245,197,24,0.2));color:#c084fc;border:1px solid rgba(192,132,252,0.3)}
+  .plan-badge-vip{background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(245,197,24,0.25));color:#f59e0b;border:1px solid rgba(245,158,11,0.4)}
+  .paywall-overlay{position:absolute;inset:0;z-index:10;background:rgba(6,9,26,0.85);backdrop-filter:blur(8px);border-radius:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .paywall-btn{padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 16px rgba(245,197,24,0.3)}
+  .pricing-card{background:var(--bg-card);border:2px solid var(--border);border-radius:20px;padding:24px;text-align:center;transition:all 0.3s;position:relative;overflow:hidden}
+  .pricing-card.featured{border-color:#f5c518;box-shadow:0 0 30px rgba(245,197,24,0.15)}
+  .pricing-card.featured::before{content:'MAIS POPULAR';position:absolute;top:12px;right:-28px;background:linear-gradient(135deg,#f5c518,#d4a910);color:#0a3558;font-size:8px;font-weight:800;padding:3px 32px;transform:rotate(45deg)}
+  .pricing-price{font-size:32px;font-weight:800;margin:12px 0 4px}
+  .pricing-price span{font-size:14px;font-weight:600;color:var(--text-muted)}
+  .pricing-features{text-align:left;margin:16px 0;display:flex;flex-direction:column;gap:8px}
+  .pricing-feature{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
+  .pricing-feature.disabled{color:var(--text-dim);text-decoration:line-through}
+  .plans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .chat-container{display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:400px;max-height:700px}
+  .chat-messages{flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:12px}
+  .chat-bubble{max-width:85%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.7;animation:fadeIn 0.3s ease;word-wrap:break-word}
+  .chat-bubble-user{align-self:flex-end;background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;border-bottom-right-radius:4px}
+  .chat-bubble-ai{align-self:flex-start;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-secondary);border-bottom-left-radius:4px}
+  .chat-bubble-ai strong{color:var(--text-primary)}
+  .chat-input-bar{display:flex;gap:8px;padding:12px 0 0;border-top:1px solid var(--border)}
+  .chat-input{flex:1;padding:12px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:14px;color:var(--text-primary);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;resize:none;min-height:44px;max-height:120px}
+  .chat-input:focus{border-color:#f5c518}
+  .chat-send-btn{padding:0 18px;border-radius:14px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:16px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .chat-send-btn:disabled{opacity:0.4;cursor:not-allowed}
+  .chat-typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:typingDot 1.4s infinite}
+  .chat-typing-dot:nth-child(2){animation-delay:0.2s}
+  .chat-typing-dot:nth-child(3){animation-delay:0.4s}
+  @keyframes typingDot{0%,60%,100%{opacity:0.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+  .chat-suggestion{padding:6px 14px;border-radius:50px;border:1px solid var(--border);background:var(--glass);color:var(--text-secondary);font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif}
+  .chat-suggestion:hover{border-color:#f5c518;color:#f5c518}
+  .search-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);transition:all 0.25s}
+  .search-bar:focus-within{border-color:#f5c518}
+  .search-bar input{flex:1;background:none;border:none;outline:none;color:var(--text-primary);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif}
+  @media(max-width:900px){.plans-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.toast-container{right:10px;left:10px;bottom:10px;width:auto;max-width:none}.plans-grid{grid-template-columns:1fr}}
+
+
+  .toast-container{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none;max-width:380px;width:calc(100% - 40px)}
+  .toast{pointer-events:all;background:rgba(10,16,36,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px 18px;backdrop-filter:blur(30px);box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;align-items:center;gap:12px;animation:toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden}
+  .toast.toast-out{animation:toastOut 0.3s ease forwards}
+  .toast-success{border-left:3px solid #22c997}.toast-error{border-left:3px solid #f0465a}.toast-info{border-left:3px solid #3b82f6}.toast-warning{border-left:3px solid #f5c518}
+  .toast-progress{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 14px 14px;animation:toastProgress 3.5s linear forwards}
+  .toast-success .toast-progress{background:#22c997}.toast-error .toast-progress{background:#f0465a}.toast-info .toast-progress{background:#3b82f6}.toast-warning .toast-progress{background:#f5c518}
+  @keyframes toastIn{from{opacity:0;transform:translateX(100px) scale(0.9)}to{opacity:1;transform:translateX(0) scale(1)}}
+  @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100px)}}
+  @keyframes toastProgress{from{width:100%}to{width:0%}}
+  .plan-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:50px;font-size:9px;font-weight:800;letter-spacing:0.5px}
+  .plan-badge-free{background:rgba(85,97,119,0.2);color:#556177;border:1px solid rgba(85,97,119,0.3)}
+  .plan-badge-trial{background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)}
+  .plan-badge-pro{background:rgba(245,197,24,0.15);color:#f5c518;border:1px solid rgba(245,197,24,0.3)}
+  .plan-badge-premium{background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(245,197,24,0.2));color:#c084fc;border:1px solid rgba(192,132,252,0.3)}
+  .plan-badge-vip{background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(245,197,24,0.25));color:#f59e0b;border:1px solid rgba(245,158,11,0.4)}
+  .paywall-overlay{position:absolute;inset:0;z-index:10;background:rgba(6,9,26,0.85);backdrop-filter:blur(8px);border-radius:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+  .paywall-btn{padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 16px rgba(245,197,24,0.3)}
+  .pricing-card{background:var(--bg-card);border:2px solid var(--border);border-radius:20px;padding:24px;text-align:center;transition:all 0.3s;position:relative;overflow:hidden}
+  .pricing-card.featured{border-color:#f5c518;box-shadow:0 0 30px rgba(245,197,24,0.15)}
+  .pricing-price{font-size:32px;font-weight:800;margin:12px 0 4px}
+  .pricing-price span{font-size:14px;font-weight:600;color:var(--text-muted)}
+  .pricing-features{text-align:left;margin:16px 0;display:flex;flex-direction:column;gap:8px}
+  .pricing-feature{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:8px}
+  .pricing-feature.disabled{color:var(--text-dim);text-decoration:line-through}
+  .plans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .chat-container{display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:400px;max-height:700px}
+  .chat-messages{flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:12px}
+  .chat-bubble{max-width:85%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.7;animation:fadeIn 0.3s ease;word-wrap:break-word}
+  .chat-bubble-user{align-self:flex-end;background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;border-bottom-right-radius:4px}
+  .chat-bubble-ai{align-self:flex-start;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-secondary);border-bottom-left-radius:4px}
+  .chat-bubble-ai strong{color:var(--text-primary)}
+  .chat-input-bar{display:flex;gap:8px;padding:12px 0 0;border-top:1px solid var(--border)}
+  .chat-input{flex:1;padding:12px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:14px;color:var(--text-primary);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;resize:none;min-height:44px;max-height:120px}
+  .chat-input:focus{border-color:#f5c518}
+  .chat-send-btn{padding:0 18px;border-radius:14px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:16px;font-weight:700;cursor:pointer;flex-shrink:0}
+  .chat-send-btn:disabled{opacity:0.4;cursor:not-allowed}
+  .chat-typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:typingDot 1.4s infinite}
+  .chat-typing-dot:nth-child(2){animation-delay:0.2s}
+  .chat-typing-dot:nth-child(3){animation-delay:0.4s}
+  @keyframes typingDot{0%,60%,100%{opacity:0.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+  .chat-suggestion{padding:6px 14px;border-radius:50px;border:1px solid var(--border);background:var(--glass);color:var(--text-secondary);font-size:11px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif}
+  .chat-suggestion:hover{border-color:#f5c518;color:#f5c518}
+  .search-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm)}
+  .search-bar:focus-within{border-color:#f5c518}
+  .search-bar input{flex:1;background:none;border:none;outline:none;color:var(--text-primary);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif}
+  @media(max-width:900px){.plans-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.toast-container{right:10px;left:10px;bottom:10px;width:auto;max-width:none}.plans-grid{grid-template-columns:1fr}}
+
+</style></head><body>${el.innerHTML}
     <div class="footer">Couri Miles — Relatório gerado em ${new Date().toLocaleString('pt-BR')}</div>
-  </body></html>`);
+  <div class="toast-container" id="toast-container"></div>
+</body></html>`);
   w.document.close();
   setTimeout(()=>{w.print();},400);
 }
@@ -3384,6 +3501,7 @@ function editTx(id) {
   if(!tx) return;
   editingTxId = id;
   editingType = tx.type;
+  editingFreshOpen = true;
 
   const overlay = document.getElementById('modal-overlay');
   overlay.classList.remove('hidden');
@@ -3391,6 +3509,7 @@ function editTx(id) {
 }
 
 let editingType = 'compra';
+let editingFreshOpen = true;
 
 function setEditType(type) {
   editingType = type;
@@ -4173,6 +4292,50 @@ function viewAdminUser(index) {
       ${recHTML}
     </div>
 
+    <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;font-weight:700">Gerenciar Plano</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--text-secondary)">Atual:</span>
+        <span class="plan-badge plan-badge-${u.data&&u.data._plan?u.data._plan:'free'}" style="font-size:11px;padding:3px 12px">${u.data&&u.data._plan?u.data._plan.toUpperCase():'FREE'}</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="adminSetPlan('${u.uid}','pro',1)" style="padding:7px 14px;border-radius:8px;border:1px solid #f5c51844;background:#f5c51811;color:#f5c518;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Pro 1m</button>
+        <button onclick="adminSetPlan('${u.uid}','pro',12)" style="padding:7px 14px;border-radius:8px;border:1px solid #f5c51844;background:#f5c51811;color:#f5c518;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Pro 12m</button>
+        <button onclick="adminSetPlan('${u.uid}','premium',1)" style="padding:7px 14px;border-radius:8px;border:1px solid #c084fc44;background:#c084fc11;color:#c084fc;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Premium 1m</button>
+        <button onclick="adminSetPlan('${u.uid}','vip',1)" style="padding:7px 14px;border-radius:8px;border:1px solid #f59e0b44;background:#f59e0b11;color:#f59e0b;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">VIP 1m</button>
+        <button onclick="adminSetPlan('${u.uid}','vip',12)" style="padding:7px 14px;border-radius:8px;border:1px solid #f59e0b44;background:#f59e0b11;color:#f59e0b;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">VIP 12m</button>
+        <button onclick="adminRevokePlan('${u.uid}')" style="padding:7px 14px;border-radius:8px;border:1px solid #f0465a44;background:#f0465a11;color:#f0465a;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Revogar</button>
+      </div>
+    </div>
+
+    <div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px;margin-bottom:12px">
+      <div style="font-size:11px;color:#f59e0b;text-transform:uppercase;margin-bottom:10px;font-weight:700">Gerenciar Conta</div>
+      <div style="margin-bottom:10px">
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;font-weight:600">Atualizar Saldo</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <select id="admin-bal-prog-${u.uid.substring(0,8)}" class="form-input" style="flex:1;padding:7px;font-size:12px;min-width:100px">${PROGRAMS.map(function(p){return '<option value="'+p.id+'">'+p.name+' ('+fMiles(balances[p.id]||0)+')</option>';}).join('')}</select>
+          <input type="number" id="admin-bal-val-${u.uid.substring(0,8)}" class="form-input" placeholder="Novo saldo" style="width:100px;padding:7px;font-size:12px">
+          <button onclick="adminUpdateBalance('${u.uid}','${u.uid.substring(0,8)}')" style="padding:7px 14px;border-radius:8px;border:none;background:#1a6fb5;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">Salvar</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px;font-weight:600">Novo Lancamento</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <select id="admin-tx-type-${u.uid.substring(0,8)}" class="form-input" style="flex:1;padding:7px;font-size:12px;min-width:90px"><option value="compra">Acumulo</option><option value="venda">Venda</option><option value="uso">Resgate</option></select>
+          <select id="admin-tx-prog-${u.uid.substring(0,8)}" class="form-input" style="flex:1;padding:7px;font-size:12px;min-width:100px">${PROGRAMS.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('')}</select>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+          <input type="number" id="admin-tx-miles-${u.uid.substring(0,8)}" class="form-input" placeholder="Milhas" style="flex:1;padding:7px;font-size:12px;min-width:80px">
+          <input type="number" id="admin-tx-cost-${u.uid.substring(0,8)}" class="form-input" placeholder="Valor R$" style="flex:1;padding:7px;font-size:12px;min-width:80px">
+          <input type="date" id="admin-tx-date-${u.uid.substring(0,8)}" class="form-input" value="${new Date().toISOString().split('T')[0]}" style="flex:1;padding:7px;font-size:12px;min-width:110px">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="admin-tx-desc-${u.uid.substring(0,8)}" class="form-input" placeholder="Descricao" style="flex:1;padding:7px;font-size:12px">
+          <button onclick="adminAddTransaction('${u.uid}','${u.uid.substring(0,8)}')" style="padding:7px 14px;border-radius:8px;border:none;background:linear-gradient(145deg,#f59e0b,#d97706);color:#0a3558;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">+ Lancar</button>
+        </div>
+      </div>
+    </div>
+
     <button onclick="closeModal()" style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--glass);color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">Fechar</button>`;
 }
 
@@ -4689,6 +4852,12 @@ function applyUserTheme(user) {
     headerInfo.innerHTML = user ?
       `<span style="font-size:10px;color:var(--text-muted)">${user.email}</span>` :
       'Modo offline — dados salvos localmente';
+    var _bEl=document.getElementById('header-plan-badge');
+    if(_bEl&&user&&typeof getPlanBadgeHTML==='function')_bEl.innerHTML=getPlanBadgeHTML();
+    else if(_bEl)_bEl.innerHTML='';
+    var _bEl=document.getElementById('header-plan-badge');
+    if(_bEl&&user&&typeof getPlanBadgeHTML==='function')_bEl.innerHTML=getPlanBadgeHTML();
+    else if(_bEl)_bEl.innerHTML='';
 
     const old = document.getElementById('admin-theme-style');
     if(old) old.remove();
@@ -4708,7 +4877,7 @@ function initApp() {
   render();
   maybeAutoFetchEuro();
   // Show promo alert after a short delay
-  setTimeout(showPromoAlert, 1500);
+  if(typeof shouldShowOnboarding==='function'&&shouldShowOnboarding()){setTimeout(showOnboarding,500);}else{setTimeout(showPromoAlert,1500);}
 }
 
 if(useFirebase) {
@@ -4720,15 +4889,17 @@ if(useFirebase) {
     currentUser=user;
     const authScreen=document.getElementById('auth-screen');
     if(user){
+      try{
       document.getElementById('auth-loading').style.display='block';
       document.getElementById('auth-form').style.display='none';
       const loaded=await loadFromCloud();
       if(!loaded) state=defaultState();
       authScreen.style.display='none';
       document.querySelector('.header').style.display='';
-     document.getElementById('main-content').style.display='';
+      document.getElementById('main-content').style.display='';
       applyUserTheme(user);
       initApp();
+      }catch(e){console.error('Init error:',e);alert('Erro ao carregar: '+e.message);document.getElementById('auth-loading').style.display='none';document.getElementById('auth-form').style.display='block';}
     } else {
       authScreen.style.display='flex';
       document.querySelector('.header').style.display='none';
@@ -5849,6 +6020,74 @@ async function sendConsultorMessage() {
     var chatEl = document.getElementById('chat-messages');
     if(chatEl) chatEl.scrollTop = chatEl.scrollHeight;
   }, 150);
+}
+
+
+// ===== ADMIN: CLIENT ACCOUNT MANAGEMENT =====
+async function adminUpdateBalance(uid, shortId) {
+  if(!isAdmin() || !useFirebase) return;
+  var progEl = document.getElementById('admin-bal-prog-'+shortId);
+  var valEl = document.getElementById('admin-bal-val-'+shortId);
+  if(!progEl || !valEl) return;
+  var progId = progEl.value;
+  var newBal = parseInt(valEl.value);
+  if(isNaN(newBal) || newBal < 0) { showToast('error','Erro','Informe um saldo valido.'); return; }
+  try {
+    var doc = await db.collection('users').doc(uid).get();
+    if(!doc.exists) { showToast('error','Erro','Usuario nao encontrado.'); return; }
+    var userData = doc.data();
+    if(!userData.balances) userData.balances = {};
+    var oldBal = userData.balances[progId] || 0;
+    userData.balances[progId] = newBal;
+    await db.collection('users').doc(uid).update({ balances: userData.balances });
+    var prog = PROGRAMS.find(function(p){return p.id===progId;});
+    showToast('success','Saldo atualizado',(prog?prog.name:progId)+': '+fMiles(oldBal)+' para '+fMiles(newBal));
+    valEl.value = '';
+    loadAdminUsers();
+  } catch(e) { showToast('error','Erro','Falha: '+e.message); }
+}
+
+async function adminAddTransaction(uid, shortId) {
+  if(!isAdmin() || !useFirebase) return;
+  var typeEl = document.getElementById('admin-tx-type-'+shortId);
+  var progEl = document.getElementById('admin-tx-prog-'+shortId);
+  var milesEl = document.getElementById('admin-tx-miles-'+shortId);
+  var costEl = document.getElementById('admin-tx-cost-'+shortId);
+  var dateEl = document.getElementById('admin-tx-date-'+shortId);
+  var descEl = document.getElementById('admin-tx-desc-'+shortId);
+  if(!typeEl||!progEl||!milesEl) return;
+  var txType = typeEl.value;
+  var progId = progEl.value;
+  var miles = parseInt(milesEl.value);
+  var cost = parseFloat(costEl.value) || 0;
+  var date = dateEl.value || new Date().toISOString().split('T')[0];
+  var desc = descEl.value || ('Admin: '+TYPE_LABELS[txType]);
+  if(!miles || miles <= 0) { showToast('error','Erro','Informe a quantidade de milhas.'); return; }
+  try {
+    var doc = await db.collection('users').doc(uid).get();
+    if(!doc.exists) { showToast('error','Erro','Usuario nao encontrado.'); return; }
+    var userData = doc.data();
+    if(!userData.transactions) userData.transactions = [];
+    if(!userData.balances) userData.balances = {};
+    var tx = {
+      id: Date.now() + Math.round(Math.random()*1000000),
+      date: date, program: progId, type: txType, miles: miles,
+      cost: txType==='uso' ? 0 : cost,
+      savedValue: txType==='uso' ? cost : 0,
+      description: desc,
+      costPerK: miles>0&&cost>0 ? (cost/miles)*1000 : 0,
+      addedByAdmin: true, adminEmail: currentUser.email,
+    };
+    if(txType==='compra') { tx.isOrganic = cost <= 0; }
+    userData.transactions.unshift(tx);
+    if(txType==='compra') userData.balances[progId] = (userData.balances[progId]||0) + miles;
+    else if(txType==='venda' || txType==='uso') userData.balances[progId] = Math.max(0, (userData.balances[progId]||0) - miles);
+    await db.collection('users').doc(uid).update({ transactions: userData.transactions, balances: userData.balances });
+    var prog = PROGRAMS.find(function(p){return p.id===progId;});
+    showToast('success','Lancamento registrado',TYPE_LABELS[txType]+' de '+fMiles(miles)+' '+(prog?prog.name:''));
+    milesEl.value = ''; costEl.value = ''; descEl.value = '';
+    loadAdminUsers();
+  } catch(e) { showToast('error','Erro','Falha: '+e.message); }
 }
 
 </script>
