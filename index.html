@@ -4875,8 +4875,7 @@ window.addEventListener('appinstalled', () => {
 
 </script>
 <script>
-// ===== NEW FEATURES =====
-// ===== TOAST NOTIFICATION SYSTEM =====
+
 function showToast(type, title, msg, duration) {
   duration = duration || 3500;
   const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
@@ -4898,7 +4897,7 @@ function showToast(type, title, msg, duration) {
     '<div class="toast-progress" style="animation-duration:' + duration + 'ms"></div>';
   container.appendChild(toast);
   setTimeout(function() { dismissToast(toast.querySelector('.toast-close')); }, duration);
-  // Limit to 4 visible toasts
+  
   var toasts = container.querySelectorAll('.toast:not(.toast-out)');
   if(toasts.length > 4) dismissToast(toasts[0].querySelector('.toast-close'));
 }
@@ -4910,7 +4909,7 @@ function dismissToast(el) {
   setTimeout(function() { toast.remove(); }, 300);
 }
 
-// ===== PASSWORD RECOVERY =====
+
 function showForgotPassword() {
   document.getElementById('auth-login-view').style.display='none';
   document.getElementById('auth-register-view').style.display='none';
@@ -4968,7 +4967,7 @@ async function sendPasswordReset() {
   }
 }
 
-// ===== ONBOARDING WIZARD =====
+
 let onboardingStep = 0;
 let onboardingSelectedProgs = [];
 
@@ -5121,9 +5120,9 @@ function finishOnboarding() {
   render();
 }
 
-// ===== TERMS OF USE & PRIVACY POLICY =====
+
 function showTermsModal(context) {
-  // context: 'register' (must accept) or 'view' (just viewing)
+  
   var overlay = document.getElementById('modal-overlay');
   overlay.classList.remove('hidden');
 
@@ -5182,7 +5181,7 @@ function hasAcceptedTerms() {
   return !!localStorage.getItem('terms-accepted-'+currentUser.uid);
 }
 
-// ===== PDF IMPORT FIX =====
+
 async function parsePDFFile(file) {
   if(typeof pdfjsLib === 'undefined') {
     showToast('error','Erro','Biblioteca PDF não carregada. Tente recarregar a página.');
@@ -5200,19 +5199,19 @@ async function parsePDFFile(file) {
       allText += pageText + '\n';
     }
 
-    // Try to parse lines into transaction rows
+    
     var lines = allText.split('\n').filter(function(l) { return l.trim().length > 10; });
     var rows = [];
 
     lines.forEach(function(line) {
-      // Try to find date pattern DD/MM/YYYY or DD/MM/YY
+      
       var dateMatch = line.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{2,4})/);
       if(!dateMatch) return;
 
       var year = dateMatch[3].length === 2 ? '20' + dateMatch[3] : dateMatch[3];
       var date = year + '-' + dateMatch[2] + '-' + dateMatch[1];
 
-      // Try to find miles/points number (large number, usually 1000+)
+      
       var numbers = line.match(/[\d\.]+/g);
       if(!numbers) return;
 
@@ -5227,7 +5226,7 @@ async function parsePDFFile(file) {
         miles = parseInt(possibleMiles[0].replace(/\./g, ''));
       }
 
-      // Try to find BRL value (R$ or number with comma for decimals)
+      
       var valueMatch = line.match(/R\$\s*([\d\.]+,\d{2})/);
       if(valueMatch) {
         value = parseFloat(valueMatch[1].replace(/\./g, '').replace(',', '.'));
@@ -5235,7 +5234,7 @@ async function parsePDFFile(file) {
 
       if(miles === 0) return;
 
-      // Clean description
+      
       var desc = line
         .replace(/(\d{2})[\/\-](\d{2})[\/\-](\d{2,4})/, '')
         .replace(/R\$\s*[\d\.]+,\d{2}/, '')
@@ -5244,7 +5243,7 @@ async function parsePDFFile(file) {
       if(desc.length > 80) desc = desc.substring(0, 80) + '…';
       if(!desc) desc = 'Importado do PDF';
 
-      // Guess type
+      
       var lower = line.toLowerCase();
       var type = 'compra';
       if(lower.includes('venda') || lower.includes('resgate')) type = 'venda';
@@ -5276,7 +5275,7 @@ async function parsePDFFile(file) {
   }
 }
 
-// ===== SEARCH & ADVANCED FILTERS =====
+
 let historySearch = '';
 let historyTypeFilter = '';
 let historyDateFrom = '';
@@ -5284,15 +5283,15 @@ let historyDateTo = '';
 let historySortBy = 'date-desc';
 
 function renderHistoryFiltered() {
-  // This replaces the filter logic in renderHistory
+  
   let txs = filterProgram==='all' ? state.transactions : state.transactions.filter(function(t){return t.program===filterProgram;});
 
-  // Apply type filter
+  
   if(historyTypeFilter) {
     txs = txs.filter(function(t){ return t.type === historyTypeFilter; });
   }
 
-  // Apply date range
+  
   if(historyDateFrom) {
     txs = txs.filter(function(t){ return t.date >= historyDateFrom; });
   }
@@ -5300,7 +5299,7 @@ function renderHistoryFiltered() {
     txs = txs.filter(function(t){ return t.date <= historyDateTo; });
   }
 
-  // Apply search
+  
   if(historySearch) {
     var q = historySearch.toLowerCase();
     txs = txs.filter(function(t){
@@ -5312,7 +5311,7 @@ function renderHistoryFiltered() {
     });
   }
 
-  // Apply sort
+  
   if(historySortBy === 'date-asc') txs.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
   else if(historySortBy === 'miles-desc') txs.sort(function(a,b){return b.miles-a.miles;});
   else if(historySortBy === 'miles-asc') txs.sort(function(a,b){return a.miles-b.miles;});
@@ -5336,7 +5335,7 @@ function clearHistoryFilters() {
   render();
 }
 
-// ===== PLANS & PAYWALL SYSTEM =====
+
 const PLANS = {
   free:    { id:'free',    name:'Free',    price:0,     badge:'FREE',    badgeClass:'plan-badge-free',    color:'#556177', maxPrograms:3, maxTransactions:30 },
   trial:   { id:'trial',   name:'Trial',   price:0,     badge:'TRIAL 7d',badgeClass:'plan-badge-trial',   color:'#3b82f6', maxPrograms:8, maxTransactions:9999, durationDays:7 },
@@ -5351,7 +5350,7 @@ const PLAN_FEATURES = {
   premium: { dashboard:true, programs:8, transactions:9999, simulator:true, reports:true, promos:true, recurring:true, import:true, analytics:true, export:true },
 };
 
-const WHATSAPP_NUMBER = '5532988414085'; // CONFIGURE SEU NÚMERO
+const WHATSAPP_NUMBER = '5532988414085'; 
 
 function getUserPlan() {
   if(!currentUser) return PLANS.free;
@@ -5359,7 +5358,7 @@ function getUserPlan() {
   const planExpiry = state._planExpiry ? new Date(state._planExpiry) : null;
   const now = new Date();
 
-  // Check if trial/paid plan expired
+  
   if(planId === 'trial' && planExpiry && now > planExpiry) {
     state._plan = 'free';
     state._planStatus = 'expired';
@@ -5424,7 +5423,7 @@ function getPlanBadgeHTML() {
 
 function initUserPlan() {
   if(!currentUser) return;
-  // Auto-assign trial for brand new users
+  
   if(!state._plan && state.transactions.length === 0) {
     state._plan = 'trial';
     const expiry = new Date();
@@ -5467,7 +5466,7 @@ function renderPaywalledContent(tabId, contentFn) {
   return contentFn();
 }
 
-// ===== PLANS TAB =====
+
 function renderPlans() {
   const currentPlan = getUserPlan();
   const trialUsed = !!state._planStarted;
@@ -5570,7 +5569,7 @@ function startTrial() {
   render();
 }
 
-// ===== ADMIN: PLAN MANAGEMENT =====
+
 function adminSetPlan(uid, planId, months) {
   if(!isAdmin() || !useFirebase) return;
   months = months || 1;
@@ -5608,7 +5607,7 @@ function adminRevokePlan(uid) {
   });
 }
 
-// ===== AI CONSULTANT =====
+
 let consultorHistory = [];
 let consultorSending = false;
 const CONSULTOR_MONTHLY_LIMIT = 50;
