@@ -4875,6 +4875,7 @@ window.addEventListener('appinstalled', () => {
 
 </script>
 <script>
+try{
 
 function showToast(type, title, msg, duration) {
   duration = duration || 3500;
@@ -5335,6 +5336,11 @@ function clearHistoryFilters() {
   render();
 }
 
+console.log("P1 OK");
+}catch(e){console.error("P1 FAIL:",e.message,e.stack);}
+</script>
+<script>
+try{
 
 const PLANS = {
   free:    { id:'free',    name:'Free',    price:0,     badge:'FREE',    badgeClass:'plan-badge-free',    color:'#556177', maxPrograms:3, maxTransactions:30 },
@@ -5607,6 +5613,11 @@ function adminRevokePlan(uid) {
   });
 }
 
+console.log("P2 OK");
+}catch(e){console.error("P2 FAIL:",e.message,e.stack);}
+</script>
+<script>
+try{
 
 let consultorHistory = [];
 let consultorSending = false;
@@ -5889,7 +5900,10 @@ async function sendConsultorMessage() {
   }, 150);
 }
 
+console.log("P2b OK");
+}catch(e){console.error("P2b FAIL:",e.message,e.stack);}
 </script>
+
 
 </body>
 </html>
