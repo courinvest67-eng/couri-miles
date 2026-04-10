@@ -1934,6 +1934,10 @@ function printReport() {
 </style></head><body>${el.innerHTML}
     <div class="footer">Couri Miles — Relatório gerado em ${new Date().toLocaleString('pt-BR')}</div>
   <div class="toast-container" id="toast-container"></div>
+<script>
+function renderPlans(){return '<div style="padding:40px;text-align:center;color:#f5c518;font-size:18px">PLANOS FUNCIONANDO!</div>';}
+function renderConsultor(){return '<div style="padding:40px;text-align:center;color:#c084fc;font-size:18px">CONSULTOR FUNCIONANDO!</div>';}
+</script>
 </body></html>`);
   w.document.close();
   setTimeout(()=>{w.print();},400);
@@ -4875,7 +4879,6 @@ window.addEventListener('appinstalled', () => {
 
 </script>
 <script>
-try{
 
 function showToast(type, title, msg, duration) {
   duration = duration || 3500;
@@ -5336,11 +5339,6 @@ function clearHistoryFilters() {
   render();
 }
 
-console.log("P1 OK");
-}catch(e){console.error("P1 FAIL:",e.message,e.stack);}
-</script>
-<script>
-try{
 
 const PLANS = {
   free:    { id:'free',    name:'Free',    price:0,     badge:'FREE',    badgeClass:'plan-badge-free',    color:'#556177', maxPrograms:3, maxTransactions:30 },
@@ -5613,11 +5611,6 @@ function adminRevokePlan(uid) {
   });
 }
 
-console.log("P2 OK");
-}catch(e){console.error("P2 FAIL:",e.message,e.stack);}
-</script>
-<script>
-try{
 
 let consultorHistory = [];
 let consultorSending = false;
@@ -5900,10 +5893,7 @@ async function sendConsultorMessage() {
   }, 150);
 }
 
-console.log("P2b OK");
-}catch(e){console.error("P2b FAIL:",e.message,e.stack);}
 </script>
-
 
 </body>
 </html>
