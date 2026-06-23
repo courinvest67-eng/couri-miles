@@ -30,7 +30,7 @@ self.addEventListener('fetch', event => {
       url.hostname.includes('awesomeapi') ||
       url.hostname.includes('exchangerate')) return;
 
-  // HTML: ALWAYS from network, no cache
+  // HTML: ALWAYS from network, no cache ever
   if (event.request.destination === 'document' ||
       url.pathname.endsWith('.html') ||
       url.pathname === '/couri-miles/' ||
