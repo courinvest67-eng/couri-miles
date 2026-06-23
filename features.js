@@ -1,4 +1,3 @@
-
 (function(){
 var css = document.createElement('style');
 css.textContent = ".plan-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:50px;font-size:9px;font-weight:800}.plan-badge-free{background:rgba(85,97,119,0.2);color:#556177;border:1px solid rgba(85,97,119,0.3)}.plan-badge-trial{background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)}.plan-badge-pro{background:rgba(245,197,24,0.15);color:#f5c518;border:1px solid rgba(245,197,24,0.3)}.plan-badge-premium{background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(245,197,24,0.2));color:#c084fc;border:1px solid rgba(192,132,252,0.3)}.plan-badge-vip{background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(245,197,24,0.25));color:#f59e0b;border:1px solid rgba(245,158,11,0.4)}.pricing-card{background:var(--bg-card);border:2px solid var(--border);border-radius:20px;padding:24px;text-align:center;position:relative;overflow:hidden}.pricing-card.featured{border-color:#f5c518}.pricing-price{font-size:32px;font-weight:800;margin:12px 0 4px}.pricing-price span{font-size:14px;color:var(--text-muted)}.pricing-features{text-align:left;margin:16px 0;display:flex;flex-direction:column;gap:8px}.pricing-feature{font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:8px}.pricing-feature.disabled{color:var(--text-dim);text-decoration:line-through}.plans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.paywall-overlay{position:absolute;inset:0;z-index:10;background:rgba(6,9,26,0.85);backdrop-filter:blur(8px);border-radius:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}.paywall-btn{padding:10px 24px;border-radius:14px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:13px;font-weight:700;cursor:pointer}.chat-container{display:flex;flex-direction:column;height:calc(100vh - 200px);min-height:400px;max-height:700px}.chat-messages{flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:12px}.chat-bubble{max-width:85%;padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.7;word-wrap:break-word}.chat-bubble-user{align-self:flex-end;background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;border-bottom-right-radius:4px}.chat-bubble-ai{align-self:flex-start;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-secondary);border-bottom-left-radius:4px}.chat-input-bar{display:flex;gap:8px;padding:12px 0 0;border-top:1px solid var(--border)}.chat-input{flex:1;padding:12px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:14px;color:var(--text-primary);font-size:13px;outline:none;resize:none;min-height:44px}.chat-input\:focus{border-color:#f5c518}.chat-send-btn{padding:0 18px;border-radius:14px;border:none;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:16px;font-weight:700;cursor:pointer}.chat-send-btn\:disabled{opacity:0.4;cursor:not-allowed}.chat-suggestion{padding:6px 14px;border-radius:50px;border:1px solid var(--border);background:var(--glass);color:var(--text-secondary);font-size:11px;cursor:pointer}.toast-container{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column-reverse;gap:8px;pointer-events:none;max-width:380px;width:calc(100% - 40px)}.toast{pointer-events:all;background:rgba(10,16,36,0.95);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:14px 18px;backdrop-filter:blur(30px);box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}.toast-success{border-left:3px solid #22c997}.toast-error{border-left:3px solid #f0465a}.toast-info{border-left:3px solid #3b82f6}.toast-warning{border-left:3px solid #f5c518}@media(max-width:900px){.plans-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.plans-grid{grid-template-columns:1fr}.toast-container{right:10px;left:10px;bottom:10px;width:auto;max-width:none}}";
@@ -472,8 +471,9 @@ function clearHistoryFilters() {
 const PLANS = {
   free:    { id:'free',    name:'Free',    price:0,     badge:'FREE',    badgeClass:'plan-badge-free',    color:'#556177', maxPrograms:3, maxTransactions:30 },
   trial:   { id:'trial',   name:'Trial',   price:0,     badge:'TRIAL 7d',badgeClass:'plan-badge-trial',   color:'#3b82f6', maxPrograms:8, maxTransactions:9999, durationDays:7 },
-  pro:     { id:'pro',     name:'Pro',     price:19.90, badge:'PRO',     badgeClass:'plan-badge-pro',     color:'#f5c518', maxPrograms:8, maxTransactions:9999 },
+  pro:     { id:'pro',     name:'Pro',     price:39.90, badge:'PRO',     badgeClass:'plan-badge-pro',     color:'#f5c518', maxPrograms:8, maxTransactions:9999 },
   premium: { id:'premium', name:'Premium', price:69.90, badge:'PREMIUM', badgeClass:'plan-badge-premium', color:'#c084fc', maxPrograms:8, maxTransactions:9999 },
+  vip:     { id:'vip',     name:'VIP',     price:149.90,badge:'VIP',     badgeClass:'plan-badge-vip',     color:'#f59e0b', maxPrograms:8, maxTransactions:9999 },
 };
 
 const PLAN_FEATURES = {
@@ -481,12 +481,14 @@ const PLAN_FEATURES = {
   trial:   { dashboard:true, programs:8, transactions:9999, simulator:true, reports:true, promos:true, recurring:true, import:true, analytics:true, export:true },
   pro:     { dashboard:true, programs:8, transactions:9999, simulator:true, reports:true, promos:true, recurring:true, import:true, analytics:true, export:true },
   premium: { dashboard:true, programs:8, transactions:9999, simulator:true, reports:true, promos:true, recurring:true, import:true, analytics:true, export:true },
+  vip:     { dashboard:true, programs:8, transactions:9999, simulator:true, reports:true, promos:true, recurring:true, import:true, analytics:true, export:true },
 };
 
 const WHATSAPP_NUMBER = '5532988414085'; 
 
 function getUserPlan() {
   if(!currentUser) return PLANS.free;
+  if(typeof isAdmin==='function'&&isAdmin()) return PLANS.premium;
   const planId = state._plan || 'free';
   const planExpiry = state._planExpiry ? new Date(state._planExpiry) : null;
   const now = new Date();
@@ -600,26 +602,59 @@ function renderPaywalledContent(tabId, contentFn) {
 }
 
 
+let planBillingCycle = 'monthly';
+
 function renderPlans() {
   const currentPlan = getUserPlan();
   const trialUsed = !!state._planStarted;
+  const isAnnual = planBillingCycle === 'annual';
 
-  const checkIcon = '<span style="color:#22c997;font-size:12px">✓</span>';
-  const crossIcon = '<span style="color:#3a4558;font-size:12px">✕</span>';
+  const proMonthly = 39.90;
+  const premiumMonthly = 69.90;
+  const discount = 0.15;
+  const proAnnualMonth = Math.round(proMonthly * (1 - discount) * 100) / 100;
+  const premiumAnnualMonth = Math.round(premiumMonthly * (1 - discount) * 100) / 100;
+  const proAnnualTotal = Math.round(proAnnualMonth * 12 * 100) / 100;
+  const premiumAnnualTotal = Math.round(premiumAnnualMonth * 12 * 100) / 100;
+  const proSavings = Math.round((proMonthly * 12 - proAnnualTotal) * 100) / 100;
+  const premiumSavings = Math.round((premiumMonthly * 12 - premiumAnnualTotal) * 100) / 100;
+
+  const proPrice = isAnnual ? proAnnualMonth.toFixed(2).replace('.',',') : proMonthly.toFixed(2).replace('.',',');
+  const premiumPrice = isAnnual ? premiumAnnualMonth.toFixed(2).replace('.',',') : premiumMonthly.toFixed(2).replace('.',',');
+  const proPeriod = isAnnual ? '/mês no anual' : '/mês';
+  const premiumPeriod = isAnnual ? '/mês no anual' : '/mês';
+
+  const proWAText = isAnnual
+    ? 'Olá! Quero assinar o plano Pro ANUAL do Couri Mile$ (R$'+proAnnualTotal.toFixed(2).replace('.',',')+'/ano = R$'+proPrice+'/mês). Meu email: '+(currentUser?currentUser.email:'')
+    : 'Olá! Quero assinar o plano Pro do Couri Mile$ (R$'+proMonthly.toFixed(2).replace('.',',')+'/mês). Meu email: '+(currentUser?currentUser.email:'');
+  const premiumWAText = isAnnual
+    ? 'Olá! Quero assinar o plano Premium ANUAL do Couri Mile$ (R$'+premiumAnnualTotal.toFixed(2).replace('.',',')+'/ano = R$'+premiumPrice+'/mês). Meu email: '+(currentUser?currentUser.email:'')
+    : 'Olá! Quero assinar o plano Premium do Couri Mile$ (R$'+premiumMonthly.toFixed(2).replace('.',',')+'/mês). Meu email: '+(currentUser?currentUser.email:'');
+
+  const checkIcon = '<span style="color:#22c997;font-size:14px">✓</span>';
+  const crossIcon = '<span style="color:#3a4558;font-size:14px">✕</span>';
 
   return `<div style="display:flex;flex-direction:column;gap:14px">
-    <div style="text-align:center;margin-bottom:8px">
-      <div style="font-size:22px;font-weight:800;color:var(--text-primary)">Escolha seu plano</div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Gerencie suas milhas como um profissional</div>
-      <div style="margin-top:10px">Plano atual: ${getPlanBadgeHTML()}</div>
+    <div style="text-align:center;margin-bottom:4px">
+      <div style="font-size:24px;font-weight:800;color:var(--text-primary)">Escolha seu plano</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:6px">Gerencie suas milhas como um profissional</div>
+      <div style="margin-top:12px">Plano atual: ${getPlanBadgeHTML()}</div>
+
+      <!-- TOGGLE MENSAL / ANUAL -->
+      <div style="display:inline-flex;align-items:center;gap:0;margin-top:16px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:50px;padding:4px">
+        <button onclick="planBillingCycle='monthly';render()" style="padding:8px 20px;border-radius:50px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.3s;${!isAnnual?'background:linear-gradient(145deg,#1a6fb5,#0a3558);color:#fff;box-shadow:0 2px 10px rgba(26,111,181,0.3)':'background:transparent;color:var(--text-muted)'}">Mensal</button>
+        <button onclick="planBillingCycle='annual';render()" style="padding:8px 20px;border-radius:50px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.3s;${isAnnual?'background:linear-gradient(145deg,#22c997,#17a37a);color:#fff;box-shadow:0 2px 10px rgba(34,201,151,0.3)':'background:transparent;color:var(--text-muted)'}">
+          Anual <span style="background:#22c997;color:#0a3558;padding:2px 8px;border-radius:50px;font-size:10px;font-weight:800;margin-left:4px">-15%</span>
+        </button>
+      </div>
     </div>
 
     <div class="plans-grid">
       <!-- FREE -->
       <div class="pricing-card">
-        <div style="font-size:14px;font-weight:700;color:#556177">Free</div>
+        <div style="font-size:16px;font-weight:700;color:#556177">Free</div>
         <div class="pricing-price" style="color:#556177">R$ 0 <span>/mês</span></div>
-        <div style="font-size:10px;color:var(--text-dim)">Para começar a explorar</div>
+        <div style="font-size:11px;color:var(--text-dim)">Para começar a explorar</div>
         <div class="pricing-features">
           <div class="pricing-feature">${checkIcon} Dashboard básico</div>
           <div class="pricing-feature">${checkIcon} Até 3 programas</div>
@@ -630,15 +665,17 @@ function renderPlans() {
           <div class="pricing-feature disabled">${crossIcon} Promoções em tempo real</div>
           <div class="pricing-feature disabled">${crossIcon} Importação de extratos</div>
           <div class="pricing-feature disabled">${crossIcon} Lançamentos recorrentes</div>
+          <div class="pricing-feature disabled">${crossIcon} Consultor IA</div>
         </div>
-        ${currentPlan.id==='free'?'<div style="padding:10px;border-radius:12px;background:rgba(85,97,119,0.1);color:#556177;font-size:12px;font-weight:700;text-align:center">Plano Atual</div>':''}
+        ${currentPlan.id==='free'?'<div style="padding:12px;border-radius:14px;background:rgba(85,97,119,0.1);color:#556177;font-size:13px;font-weight:700;text-align:center">Plano Atual</div>':''}
       </div>
 
       <!-- PRO -->
       <div class="pricing-card featured">
-        <div style="font-size:14px;font-weight:700;color:#f5c518">Pro</div>
-        <div class="pricing-price" style="color:#f5c518">R$ 19,90 <span>/mês</span></div>
-        <div style="font-size:10px;color:var(--text-dim)">Para quem leva milhas a sério</div>
+        <div style="font-size:16px;font-weight:700;color:#f5c518">Pro</div>
+        <div class="pricing-price" style="color:#f5c518">R$ ${proPrice} <span>${proPeriod}</span></div>
+        <div style="font-size:11px;color:var(--text-dim)">Para quem leva milhas a sério</div>
+        ${isAnnual?'<div style="margin-top:6px;font-size:12px;color:#22c997;font-weight:700">💰 Economia de R$ '+proSavings.toFixed(2).replace('.',',')+'/ano</div><div style="font-size:11px;color:var(--text-muted)">Total: R$ '+proAnnualTotal.toFixed(2).replace('.',',')+'/ano</div>':''}
         <div class="pricing-features">
           <div class="pricing-feature">${checkIcon} Dashboard completo</div>
           <div class="pricing-feature">${checkIcon} <strong>Todos os 8 programas</strong></div>
@@ -649,37 +686,60 @@ function renderPlans() {
           <div class="pricing-feature">${checkIcon} <strong>Promoções em tempo real</strong></div>
           <div class="pricing-feature">${checkIcon} <strong>Importação de extratos</strong></div>
           <div class="pricing-feature">${checkIcon} <strong>Lançamentos recorrentes</strong></div>
+          <div class="pricing-feature disabled">${crossIcon} Consultor IA</div>
         </div>
-        ${currentPlan.id==='pro'?'<div style="padding:10px;border-radius:12px;background:rgba(245,197,24,0.1);color:#f5c518;font-size:12px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
-        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Quero assinar o plano Pro do Couri Mile$ (R$19,90/mês). Meu email: '+(currentUser?currentUser.email:''))}" target="_blank" rel="noopener" style="display:block;padding:12px;border-radius:14px;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:14px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,197,24,0.3)">Assinar Pro</a>`}
+        ${currentPlan.id==='pro'?'<div style="padding:12px;border-radius:14px;background:rgba(245,197,24,0.1);color:#f5c518;font-size:13px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
+        <a href="https://courinvest.app.vindi.com.br/customer/pages/749afb14-29ba-432a-afd3-ff17e2d69e33/subscriptions/new" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#f5c518,#d4a910);color:#0a3558;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,197,24,0.3)">Assinar Pro${isAnnual?' Anual':''}</a>`}
       </div>
 
       <!-- PREMIUM -->
       <div class="pricing-card">
-        <div style="font-size:14px;font-weight:700;color:#c084fc">Premium</div>
-        <div class="pricing-price" style="color:#c084fc">R$ 69,90 <span>/mês</span></div>
-        <div style="font-size:10px;color:var(--text-dim)">Máxima performance em milhas</div>
+        <div style="font-size:16px;font-weight:700;color:#c084fc">Premium</div>
+        <div class="pricing-price" style="color:#c084fc">R$ ${premiumPrice} <span>${premiumPeriod}</span></div>
+        <div style="font-size:11px;color:var(--text-dim)">Máxima performance em milhas</div>
+        ${isAnnual?'<div style="margin-top:6px;font-size:12px;color:#22c997;font-weight:700">💰 Economia de R$ '+premiumSavings.toFixed(2).replace('.',',')+'/ano</div><div style="font-size:11px;color:var(--text-muted)">Total: R$ '+premiumAnnualTotal.toFixed(2).replace('.',',')+'/ano</div>':''}
         <div class="pricing-features">
           <div class="pricing-feature">${checkIcon} <strong>Tudo do Pro</strong></div>
           <div class="pricing-feature">${checkIcon} Suporte prioritário WhatsApp</div>
           <div class="pricing-feature">${checkIcon} Consultoria mensal 1:1</div>
+          <div class="pricing-feature">${checkIcon} <strong>Consultor IA (50 msgs/mês)</strong></div>
           <div class="pricing-feature">${checkIcon} Alertas personalizados (em breve)</div>
           <div class="pricing-feature">${checkIcon} Multi-carteira (em breve)</div>
         </div>
-        ${currentPlan.id==='premium'?'<div style="padding:10px;border-radius:12px;background:rgba(192,132,252,0.1);color:#c084fc;font-size:12px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
-        <a href="https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Olá! Quero assinar o plano Premium do Couri Mile$ (R$69,90/mês). Meu email: '+(currentUser?currentUser.email:''))}" target="_blank" rel="noopener" style="display:block;padding:12px;border-radius:14px;background:linear-gradient(145deg,#c084fc,#9333ea);color:#fff;font-size:14px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(192,132,252,0.3)">Assinar Premium</a>`}
+        ${currentPlan.id==='premium'?'<div style="padding:12px;border-radius:14px;background:rgba(192,132,252,0.1);color:#c084fc;font-size:13px;font-weight:700;text-align:center">✓ Plano Atual</div>':`
+        <a href="https://courinvest.app.vindi.com.br/customer/pages/6d6d21bd-6493-4cad-999b-638c978b2276/subscriptions/new" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#c084fc,#9333ea);color:#fff;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(192,132,252,0.3)">Assinar Premium${isAnnual?' Anual':''}</a>`}
+      </div>
+
+      <!-- VIP -->
+      <div class="pricing-card" style="border-color:#f59e0b55;background:linear-gradient(180deg,rgba(245,158,11,0.06),var(--bg-card))">
+        <div style="font-size:16px;font-weight:700;color:#f59e0b">👑 VIP</div>
+        <div class="pricing-price" style="color:#f59e0b">R$ ${isAnnual?(149.90*0.85).toFixed(2).replace('.',','):'149,90'} <span>${isAnnual?'/mês no anual':'/mês'}</span></div>
+        <div style="font-size:11px;color:var(--text-dim)">Gestão completa pela Courinvest</div>
+        ${isAnnual?'<div style="margin-top:6px;font-size:12px;color:#22c997;font-weight:700">💰 Economia de R$ '+((149.90*12)-(149.90*0.85*12)).toFixed(2).replace('.',',')+'/ano</div><div style="font-size:11px;color:var(--text-muted)">Total: R$ '+(149.90*0.85*12).toFixed(2).replace('.',',')+'/ano</div>':''}
+        <div class="pricing-features">
+          <div class="pricing-feature">${checkIcon} <strong>Tudo do Premium</strong></div>
+          <div class="pricing-feature">${checkIcon} <strong>Gestão feita por nós</strong></div>
+          <div class="pricing-feature">${checkIcon} Lançamentos pelo consultor</div>
+          <div class="pricing-feature">${checkIcon} Acompanhamento de saldos</div>
+          <div class="pricing-feature">${checkIcon} Alertas de vencimento</div>
+          <div class="pricing-feature">${checkIcon} Estratégia de acúmulo/resgate</div>
+          <div class="pricing-feature">${checkIcon} <strong>Consultor IA ilimitado</strong></div>
+          <div class="pricing-feature">${checkIcon} Suporte prioritário 24h</div>
+        </div>
+        ${currentPlan.id==='vip'?'<div style="padding:12px;border-radius:14px;background:rgba(245,158,11,0.1);color:#f59e0b;font-size:13px;font-weight:700;text-align:center">👑 Plano Atual</div>':`
+        <a href="https://courinvest.app.vindi.com.br/customer/pages/8fa7b905-3b88-491a-bcaf-9a7afd67c849/subscriptions/new" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:14px;background:linear-gradient(145deg,#f59e0b,#d97706);color:#0a3558;font-size:15px;font-weight:700;text-align:center;text-decoration:none;font-family:inherit;box-shadow:0 4px 16px rgba(245,158,11,0.3)">👑 Assinar VIP${isAnnual?' Anual':''}</a>`}
       </div>
     </div>
 
     ${!trialUsed && currentPlan.id==='free' ? `
     <div class="card" style="border:2px solid #3b82f6;text-align:center">
       <div style="font-size:16px;font-weight:800;color:#3b82f6;margin-bottom:6px">🎁 Teste grátis por 7 dias!</div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Experimente todos os recursos Pro sem compromisso. Sem cartão de crédito.</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Experimente todos os recursos Pro sem compromisso. Sem cartão de crédito.</div>
       <button onclick="startTrial()" style="padding:12px 32px;border-radius:14px;border:none;background:linear-gradient(145deg,#3b82f6,#2563eb);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 16px rgba(59,130,246,0.3)">Começar Trial Grátis</button>
     </div>` : ''}
 
     <div class="card" style="text-align:center">
-      <div style="font-size:11px;color:var(--text-dim);line-height:1.7">
+      <div style="font-size:12px;color:var(--text-dim);line-height:1.7">
         💬 Dúvidas? Entre em contato pelo <a href="https://wa.me/${WHATSAPP_NUMBER}" target="_blank" style="color:#22c997;text-decoration:none;font-weight:600">WhatsApp</a><br>
         📧 ou por email: <a href="mailto:courinvest.67@gmail.com" style="color:#3b82f6;text-decoration:none;font-weight:600">courinvest.67@gmail.com</a>
       </div>
@@ -701,6 +761,8 @@ function startTrial() {
   renderTabs();
   render();
 }
+
+
 
 
 function adminSetPlan(uid, planId, months) {
@@ -756,6 +818,8 @@ function getConsultorMsgCount() {
 }
 
 function canSendConsultorMsg() {
+  var plan = getUserPlan();
+  if(plan.id === 'vip' || isAdmin()) return true;
   return getConsultorMsgCount() < CONSULTOR_MONTHLY_LIMIT;
 }
 
@@ -841,7 +905,7 @@ REGRAS:
 
 function renderConsultor() {
   const plan = getUserPlan();
-  const isPremium = plan.id === 'premium' || isAdmin();
+  const isPremium = plan.id === 'premium' || plan.id === 'vip' || isAdmin();
 
   if(!isPremium) {
     return `<div style="display:flex;flex-direction:column;gap:14px">
